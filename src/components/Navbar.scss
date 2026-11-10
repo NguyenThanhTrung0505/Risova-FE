@@ -1,0 +1,101 @@
+@use "../styles/variables" as *;
+.app-navbar {
+    height: 64px;
+    background-color: $bg-white;
+    border-color: $border-color !important;
+
+    .navbar-breadcrumb {
+        .breadcrumb-parent {
+            font-size: 0.78rem;
+            color: $text-color !important;
+        }
+        .breadcrumb-current {
+            font-size: 1.1rem;
+            color: $text-primary;
+        }
+    }
+
+    .navbar-search {
+        max-width: 480px;
+
+        .search-input-group {
+            border: 1.5px solid rgba($primary, 0.35);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s ease-in-out;
+
+            &:focus-within {
+                border-color: $primary;
+                box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+            }
+
+            .input-group-text {
+                color: #686868;
+                border: none;
+            }
+
+            .form-control {
+                border: none;
+                font-size: 0.92rem;
+                background-color: $bg-white;
+                &::placeholder {
+                    color: #686868;
+                }
+            }
+        }
+    }
+
+    .navbar-actions {
+        .notification-btn {
+            .badge {
+                font-size: 0.65rem;
+                padding: 0.25em 0.45em;
+            }
+        }
+
+        .user-profile-dropdown {
+            .cursor-pointer {
+                cursor: pointer;
+            }
+
+            .dropdown-toggle::after {
+                display: none;
+            }
+            .dropdown-item {
+                &:hover {
+                    background-color: $bg-blue;
+                }
+                &:last-of-type {
+                    &:hover {
+                        background-color: $danger-bg-subtle;
+                    }
+                }
+            }
+
+            .avatar-circle {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: rgba($primary, 0.18);
+                color: $primary;
+                font-weight: 700;
+                font-size: 0.95rem;
+                letter-spacing: 0.5px;
+            }
+
+            .user-details {
+                line-height: 1.25;
+
+                .user-name {
+                    font-size: 0.92rem;
+                    color: $text-primary;
+                }
+
+                .user-role {
+                    font-size: 0.78rem;
+                    color: $text-color !important;
+                }
+            }
+        }
+    }
+}

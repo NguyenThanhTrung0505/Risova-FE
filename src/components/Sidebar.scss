@@ -1,0 +1,89 @@
+@use "../styles/variables" as *;
+
+:root {
+    --sidebar-text: #{$sidebar-text};
+    --sidebar-active: #{$sidebar-active};
+    --sidebar-muted: #{$sidebar-muted};
+    --sidebar-hover: #{$sidebar-hover};
+    --sidebar-logo-bg: #{$bg-white};
+    --sidebar-logo-color: #{$primary};
+    --sidebar-width: #{$sidebar-width};
+}
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background-color: $bg;
+}
+
+.app-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.risova-sidebar {
+    height: 100vh;
+    border-right: 1px solid rgba($text-white, 0.04);
+    font-family: $font-family-base;
+
+    .ps-sidebar-container {
+        background-color: $sidebar-bg;
+        color: $sidebar-text;
+    }
+
+    .sidebar-scroll {
+        height: 100%;
+        overflow-y: auto;
+        padding-bottom: 1.25rem;
+    }
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.15rem 1.05rem 0.45rem;
+    }
+
+    .sidebar-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background-color: $bg-white;
+        color: $primary;
+    }
+
+    .sidebar-title {
+        display: block;
+        color: $text-white;
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+    }
+
+    .sidebar-subtitle {
+        display: block;
+        margin-top: 0.12rem;
+        color: rgba($text-nav, 0.72);
+        font-size: 0.78rem;
+        font-weight: 400;
+        line-height: 1.2;
+    }
+
+    .sidebar-section {
+        margin: 1.05rem 0 0.15rem;
+        padding: 0 1.2rem;
+        color: $sidebar-muted;
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .sidebar-group:first-of-type .sidebar-section {
+        margin-top: 0.7rem;
+    }
+}

@@ -1,0 +1,113 @@
+// src/styles/Auth.scss
+@use "../variables" as *;
+
+.auth-page-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image: url("../../../public/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba($bg-dark, 0.4);
+        z-index: 1;
+    }
+
+    .auth-content-wrapper {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 420px;
+        padding: 0 15px;
+
+        .auth-logo-box {
+            text-align: center;
+            margin-bottom: 24px;
+
+            .logo-circle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 80px;
+                height: 80px;
+                background-color: white;
+                border-radius: 50%;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+                img {
+                    width: 50px;
+                }
+            }
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+            h3.auth-title {
+                font-weight: 700;
+                color: $text-primary;
+                text-align: center;
+                margin-bottom: 8px;
+            }
+            p.auth-subtitle {
+                color: $text-color;
+                text-align: center;
+                font-size: 0.85rem;
+                margin-bottom: 24px;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: $text-primary;
+            }
+
+            .form-control {
+                font-size: 0.9rem;
+                padding: 0.6rem 0.75rem;
+                border-color: $border-color;
+                &:focus {
+                    border-color: $primary;
+                    box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+                }
+            }
+
+            .btn-primary-custom {
+                background-color: $primary;
+                color: $text-white;
+                padding: 0.6rem 1rem;
+                font-weight: 600;
+                width: 100%;
+                &:hover {
+                    background-color: darken($primary, 5%);
+                }
+            }
+
+            .back-link {
+                color: $text-color;
+                text-decoration: none;
+                font-size: 0.85rem;
+                display: inline-flex;
+                align-items: center;
+                margin-bottom: 20px;
+                &:hover {
+                    color: $primary;
+                }
+            }
+        }
+    }
+}
