@@ -50,7 +50,7 @@ export function DataProvider({ children }) {
   const createWorkOrder = (newWo, currentUser) => {
     const count = data.work_orders.length + 1;
     const woCode = `WO-2025-01${count < 10 ? '0' + count : count}`;
-    
+
     // Find asset
     const asset = data.assets.find(a => a.id === Number(newWo.asset_id)) || data.assets[0];
 
@@ -100,14 +100,14 @@ export function DataProvider({ children }) {
       updated_at: new Date().toISOString(),
       closed_at: null,
       due_date: newWo.due_date || new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
-      checklists: newWo.checklists && newWo.checklists.length > 0 
-        ? newWo.checklists 
+      checklists: newWo.checklists && newWo.checklists.length > 0
+        ? newWo.checklists
         : [
-            { id: 1, step_number: 1, task_description: 'Kiểm tra hiện trường & áp dụng quy trình an toàn điện/cơ', is_completed: false, note: '' },
-            { id: 2, step_number: 2, task_description: 'Thực hiện thao tác sửa chữa/thay thế theo quy trình kỹ thuật', is_completed: false, note: '' },
-            { id: 3, step_number: 3, task_description: 'Vận hành thử nghiệm và kiểm tra thông số kỹ thuật', is_completed: false, note: '' },
-            { id: 4, step_number: 4, task_description: 'Vệ sinh hiện trường và bàn giao thiết bị', is_completed: false, note: '' }
-          ],
+          { id: 1, step_number: 1, task_description: 'Kiểm tra hiện trường & áp dụng quy trình an toàn điện/cơ', is_completed: false, note: '' },
+          { id: 2, step_number: 2, task_description: 'Thực hiện thao tác sửa chữa/thay thế theo quy trình kỹ thuật', is_completed: false, note: '' },
+          { id: 3, step_number: 3, task_description: 'Vận hành thử nghiệm và kiểm tra thông số kỹ thuật', is_completed: false, note: '' },
+          { id: 4, step_number: 4, task_description: 'Vệ sinh hiện trường và bàn giao thiết bị', is_completed: false, note: '' }
+        ],
       parts: preparedParts
     };
 
