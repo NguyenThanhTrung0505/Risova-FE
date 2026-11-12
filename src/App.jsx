@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { DataProvider, AuthProvider, useAuth } from './context/DataContext';
+
+// Core CMMS Layout & Components
 import SidebarLayout from './components/SidebarLayout';
 import ToastContainer from './components/ToastContainer';
 import CreateWorkOrderModal from './components/CreateWorkOrderModal';
 import QrScannerModal from './components/QrScannerModal';
 
-// Pages
+// CMMS Pages
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import AssetsPage from './pages/AssetsPage';
@@ -18,9 +21,71 @@ import UsersPage from './pages/UsersPage';
 import ReportsPage from './pages/ReportsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 
+// UI Branch Layouts & Pages
+import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
+import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyOTP from './pages/auth/VerifyOTP';
+import ResetPassword from './pages/auth/ResetPassword';
+import CreateUser from './pages/tempt';
+
+// URL path to CMMS Tab mapping
+const pathToTab = {
+  '/': 'dashboard',
+  '/dashboard': 'dashboard',
+  '/equipment': 'assets',
+  '/assets': 'assets',
+  '/locations': 'locations',
+  '/work-orders': 'work-orders',
+  '/maintenance': 'schedules',
+  '/schedules': 'schedules',
+  '/inventory': 'inventory',
+  '/lot-monitoring': 'iot',
+  '/iot': 'iot',
+  '/personnel': 'users',
+  '/users': 'users',
+  '/reports': 'reports',
+  '/audit-logs': 'audit',
+  '/audit': 'audit',
+};
+
+// CMMS Tab to URL path mapping
+const tabToPath = {
+  dashboard: '/',
+  assets: '/equipment',
+  locations: '/locations',
+  'work-orders': '/work-orders',
+  schedules: '/maintenance',
+  inventory: '/inventory',
+  iot: '/lot-monitoring',
+  users: '/personnel',
+  reports: '/reports',
+  audit: '/audit-logs',
+};
+
 function MainApp() {
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const currentTab = pathToTab[location.pathname] || 'dashboard';
+  const [activeTab, setActiveTabState] = useState(currentTab);
+
+  // Sync activeTab whenever URL route changes
+  useEffect(() => {
+    if (pathToTab[location.pathname]) {
+      setActiveTabState(pathToTab[location.pathname]);
+    }
+  }, [location.pathname]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTabState(tabId);
+    const targetPath = tabToPath[tabId] || '/';
+    if (location.pathname !== targetPath) {
+      navigate(targetPath);
+    }
+  };
 
   // Global modals and cross-navigation
   const [isCreateWoOpen, setIsCreateWoOpen] = useState(false);
@@ -29,7 +94,7 @@ function MainApp() {
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
   const [selectedAssetForDetail, setSelectedAssetForDetail] = useState(null);
 
-  // If not authenticated, show Figma-accurate login screen
+  // If not authenticated, show interactive Figma login screen
   if (!isAuthenticated) {
     return <AuthPage />;
   }
@@ -42,7 +107,7 @@ function MainApp() {
 
   const handleSelectWoFromDashboard = (wo) => {
     setSelectedWoForDetail(wo);
-    setActiveTab('work-orders');
+    handleTabChange('work-orders');
   };
 
   const handleSelectAssetForWo = (asset) => {
@@ -56,7 +121,7 @@ function MainApp() {
 
   const handleViewAssetFromQr = (asset) => {
     setSelectedAssetForDetail(asset);
-    setActiveTab('assets');
+    handleTabChange('assets');
   };
 
   const handleCreateWoFromQr = (asset) => {
@@ -77,7 +142,7 @@ function MainApp() {
   return (
     <SidebarLayout
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleTabChange}
       onOpenCreateWo={() => handleOpenCreateWo(null)}
       onOpenQrScanner={() => setIsQrScannerOpen(true)}
     >
@@ -105,7 +170,7 @@ function MainApp() {
       {/* Active Tab View */}
       {activeTab === 'dashboard' && (
         <Dashboard
-          onNavigate={(tab) => setActiveTab(tab)}
+          onNavigate={(tab) => handleTabChange(tab)}
           onOpenCreateWo={() => handleOpenCreateWo(null)}
           onSelectWo={handleSelectWoFromDashboard}
         />
@@ -163,11 +228,39 @@ function MainApp() {
   );
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Auth routes from UI branch */}
+      <Route path="/auth" element={<AuthLayout />}>
+        <Route index element={<Login />} />
+        <Route path="login" element={<Login />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="verify-otp" element={<VerifyOTP />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+      </Route>
+
+      {/* Auth direct shortcuts */}
+      <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
+      <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
+      <Route path="/verify-otp" element={<AuthLayout><VerifyOTP /></AuthLayout>} />
+      <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
+
+      {/* Standalone UI pages */}
+      <Route path="/tempt" element={<CreateUser />} />
+      <Route path="/v2/*" element={<MainLayout />} />
+
+      {/* Main CMMS application & all feature routes */}
+      <Route path="*" element={<MainApp />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <DataProvider>
       <AuthProvider>
-        <MainApp />
+        <AppRoutes />
       </AuthProvider>
     </DataProvider>
   );

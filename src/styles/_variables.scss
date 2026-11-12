@@ -1,0 +1,69 @@
+// ==========================================
+// SCSS Variables Configuration
+// ==========================================
+
+// --- Theme Colors ---
+$primary: #3f72af;
+$bg-dark: #112d4e;
+$bg: #f8f7f7;
+$bg-white: #fff;
+$bg-blue: #dbe2ef;
+
+// --- Status Colors ---
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$info: #3b82f6;
+
+$success-bg-subtle: rgba($success, 0.15);
+$warning-bg-subtle: rgba($warning, 0.15);
+$danger-bg-subtle: rgba($danger, 0.15);
+$info-bg-subtle: rgba($info, 0.15);
+
+// --- Text Colors ---
+$text-primary: #112d4e;
+$text-nav: #dbe2ef;
+$text-blue: #3f72af;
+$text-color: #66788a;
+$text-white: #fff;
+$text-success: #10b981;
+$text-warning: #f59e0b;
+$text-danger: #ef4444;
+$text-info: #3b82f6;
+
+// border-colors
+$border-color: #dbe2ef;
+
+// --- Sidebar ---
+$sidebar-bg: $bg-dark;
+$sidebar-text: $text-nav;
+$sidebar-active: $primary;
+$sidebar-muted: rgba($text-nav, 0.55);
+$sidebar-hover: rgba($primary, 0.32);
+$sidebar-width: 270px;
+
+// Names already used by shared component styles
+$dark-brand: $bg-dark;
+$text-lg-color: $text-white;
+
+// --- Font Family ---
+$font-family-sans-serif:
+    "Inter",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+$font-family-base: $font-family-sans-serif;
+
+// --- Bootstrap Overrides ---
+$body-bg: $bg;
+$body-color: $text-primary;
+$theme-colors: (
+    "primary": $primary,
+    "dark": $bg-dark,
+    "success": $success,
+    "warning": $warning,
+    "danger": $danger,
+    "info": $info,
+);
