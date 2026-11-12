@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F9F7F7;
+    color: #112D4E;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Design System Typography Utilities (Figma Specification) */
+.text-page-title {
+  font-size: 26px !important;
+  line-height: 32px !important;
+  font-weight: 700 !important;
+}
+
+.text-section-title {
+  font-size: 20px !important;
+  line-height: 28px !important;
+  font-weight: 600 !important;
+}
+
+.text-card-title {
+  font-size: 16px !important;
+  line-height: 24px !important;
+  font-weight: 600 !important;
+}
+
+.text-body {
+  font-size: 14px !important;
+  line-height: 20px !important;
+  font-weight: 400 !important;
+}
+
+.text-caption {
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 400 !important;
+}
+
+/* Status colors border & text for Toast & Badges */
+.border-status-success {
+  border-color: #10B981 !important;
+}
+.border-status-warning {
+  border-color: #F59E0B !important;
+}
+.border-status-danger {
+  border-color: #EF4444 !important;
+}
+.border-status-info {
+  border-color: #3B82F6 !important;
+}
+
+.text-status-success {
+  color: #10B981 !important;
+}
+.text-status-warning {
+  color: #F59E0B !important;
+}
+.text-status-danger {
+  color: #EF4444 !important;
+}
+.text-status-info {
+  color: #3B82F6 !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Blueprint pattern for Auth screen */
+.blueprint-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
