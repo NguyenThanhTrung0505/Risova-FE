@@ -3,7 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
-
+import { toast } from "react-toastify";
+import api from "../../services/api.js";
 const ForgotPassword = () => {
     const navigate = useNavigate();
     const initialValues = { email: "" };
@@ -14,9 +15,13 @@ const ForgotPassword = () => {
             .required("Vui lòng nhập email"),
     });
 
-    const onSubmit = (values) => {
-        console.log("Reset email sent to:", values);
-        navigate("/verify-otp");
+    const onSubmit = async (values) => {
+        try {
+            await api.post("/auth/forgot-password", values);
+            navigate("/auth/verify-otp", { state: { values } });
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Lỗi hệ thống!");
+        }
     };
 
     return (

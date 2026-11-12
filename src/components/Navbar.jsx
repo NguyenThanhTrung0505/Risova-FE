@@ -1,7 +1,10 @@
 import React from "react";
 import { Dropdown } from "react-bootstrap";
 import { FiSearch, FiBell } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./Navbar.scss";
+import useAuthStore from "../stores/authStore";
 
 const getInitials = (name) => {
     if (!name) return "";
@@ -9,18 +12,36 @@ const getInitials = (name) => {
     if (words.length === 1) {
         return words[0].substring(0, 2).toUpperCase();
     }
-    const middleInitial = words[words.length - 2].charAt(0);
-    const lastInitial = words[words.length - 1].charAt(0);
-    return `${middleInitial}${lastInitial}`.toUpperCase();
+    return (
+        words[words.length - 2].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
+};
+const getRoleName = (role) => {
+    const roles = {
+        ADMIN: "Quản trị viên",
+        MANAGER: "Quản lý",
+        TECHNICIAN: "Kỹ thuật viên",
+        STAFF: "Nhân viên",
+        INVENTORY_STAFF: "Nhân viên kho",
+    };
+    return roles[role] || role || "Người dùng";
 };
 
 const Navbar = ({
     breadcrumbParent = "Không gian làm việc",
     breadcrumbCurrent = "Thiết bị",
-    user = { name: "Minh Anh", role: "Quản lý bảo trì" },
     unreadNotifications = 3,
 }) => {
-    const avatarText = getInitials(user?.name);
+    const navigate = useNavigate();
+    const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
+
+    const avatarText = getInitials(user?.fullName);
+    const handleLogout = () => {
+        logout();
+        toast.success("Đăng xuất thành công!");
+        navigate("/auth/login");
+    };
 
     return (
         <header className="app-navbar d-flex align-items-center justify-content-between px-4 bg-white border-bottom">
@@ -68,23 +89,26 @@ const Navbar = ({
                         </div>
                         <div className="user-details d-flex flex-column">
                             <span className="user-name fw-bold">
-                                {user?.name}
+                                {user?.fullName || "Người dùng"}
                             </span>
                             <span className="user-role text-muted">
-                                {user?.role}
+                                {getRoleName(user?.role)}
                             </span>
                         </div>
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu className="shadow-sm border-0 mt-2">
-                        <Dropdown.Item href="#profile">
+                        <Dropdown.Item onClick={() => navigate("/profile")}>
                             Hồ sơ cá nhân
                         </Dropdown.Item>
-                        <Dropdown.Item href="#settings">
+                        <Dropdown.Item onClick={() => navigate("/settings")}>
                             Cài đặt tài khoản
                         </Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Item href="#logout" className="text-danger">
+                        <Dropdown.Item
+                            onClick={handleLogout}
+                            className="text-danger"
+                        >
                             Đăng xuất
                         </Dropdown.Item>
                     </Dropdown.Menu>

@@ -3,21 +3,46 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import logo from "../../../public/favicon.svg";
+import logo from "../../assets/favicon.svg";
+import useAuthStore from "../../stores/authStore.js";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import api from "../../services/api.js";
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const login = useAuthStore((state) => state.login);
+    const navigate = useNavigate();
 
     const initialValues = { email: "", password: "" };
     const validationSchema = Yup.object({
         email: Yup.string()
             .email("Email không hợp lệ")
             .required("Vui lòng nhập email"),
-        password: Yup.string().required("Vui lòng nhập mật khẩu"),
+        password: Yup.string()
+            .required("Vui lòng nhập mật khẩu")
+            .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+            .matches(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ hoa")
+            .matches(/[a-z]/, "Mật khẩu phải có ít nhất 1 chữ thường")
+            .matches(/[0-9]/, "Mật khẩu phải có ít nhất 1 chữ số")
+            .matches(
+                /[^A-Za-z0-9]/,
+                "Mật khẩu phải có ít nhất 1 ký tự đặc biệt",
+            ),
     });
 
-    const onSubmit = (values) => {
-        console.log("Login Data:", values);
+    const onSubmit = async (values) => {
+        try {
+            const response = await api.post("/auth/login", values);
+            const { user, token } = response.data.data;
+            login(user, token);
+            toast.success("Đăng nhập thành công!");
+            setTimeout(() => {
+                navigate("/");
+            }, 3000);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Đăng nhập thất bại!");
+        }
     };
 
     return (
@@ -114,6 +139,7 @@ const Login = () => {
                     </Formik>
                 </div>
             </div>
+            ``
         </div>
     );
 };

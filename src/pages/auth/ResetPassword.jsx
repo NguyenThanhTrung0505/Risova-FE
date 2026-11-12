@@ -3,9 +3,13 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiEye, FiEyeOff } from "react-icons/fi";
-
+import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import api from "../../services/api";
 const ResetPassword = () => {
     const navigate = useNavigate();
+    const { resetToken } = useLocation().state || {};
+    if (!resetToken) navigate("/auth/forgot-password");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -13,23 +17,54 @@ const ResetPassword = () => {
 
     const validationSchema = Yup.object({
         password: Yup.string()
-            .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
-            .required("Vui lòng nhập mật khẩu mới"),
+            .required("Vui lòng nhập mật khẩu")
+            .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+            .matches(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ hoa")
+            .matches(/[a-z]/, "Mật khẩu phải có ít nhất 1 chữ thường")
+            .matches(/[0-9]/, "Mật khẩu phải có ít nhất 1 chữ số")
+            .matches(
+                /[^A-Za-z0-9]/,
+                "Mật khẩu phải có ít nhất 1 ký tự đặc biệt",
+            ),
         confirmPassword: Yup.string()
             .oneOf([Yup.ref("password"), null], "Mật khẩu xác nhận không khớp")
-            .required("Vui lòng xác nhận mật khẩu"),
+            .required("Vui lòng xác nhận mật khẩu")
+            .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+            .matches(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ hoa")
+            .matches(/[a-z]/, "Mật khẩu phải có ít nhất 1 chữ thường")
+            .matches(/[0-9]/, "Mật khẩu phải có ít nhất 1 chữ số")
+            .matches(
+                /[^A-Za-z0-9]/,
+                "Mật khẩu phải có ít nhất 1 ký tự đặc biệt",
+            ),
     });
 
-    const onSubmit = (values) => {
-        console.log("New Password Set:", values);
-        navigate("/login");
+    const onSubmit = async (values) => {
+        try {
+            if (!values) {
+                toast.warning("Vui lòng nhập đủ thông tin!");
+                return;
+            }
+            const { password } = values;
+            const payload = {
+                resetToken,
+                newPassword: password,
+            };
+            await api.post("/auth/reset-password", payload);
+            toast.success("Đổi mật khẩu thành công!");
+            setTimeout(() => {
+                navigate("/auth/login");
+            }, 3000);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Lỗi hệ thống!");
+        }
     };
 
     return (
         <div className="auth-page-container">
             <div className="auth-content-wrapper">
                 <div className="auth-card">
-                    <Link to="/auth/verify-otp" className="back-link">
+                    <Link to="/auth/forgot-password" className="back-link">
                         <FiArrowLeft className="me-2" /> Quay lại
                     </Link>
 

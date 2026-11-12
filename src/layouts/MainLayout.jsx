@@ -5,16 +5,6 @@ import "./MainLayout.scss";
 
 function MainLayout() {
     return (
-        // <div className="app">
-        //     <Navbar />
-
-        //     <Sidebar />
-        //     <div className="main-container">
-        //         <main>
-        //             <Outlet />
-        //         </main>
-        //     </div>
-        // </div>
         <div className="app-layout d-flex">
             <aside className="app-sidebar-wrapper">
                 <Sidebar />

@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
-
+import api from "../../services/api";
+import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 const VerifyOTP = () => {
+    const location = useLocation();
+    const { values } = location.state || {};
     const navigate = useNavigate();
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
@@ -17,11 +21,38 @@ const VerifyOTP = () => {
         }
     };
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         const otpCode = otp.join("");
-        console.log("Verifying OTP:", otpCode);
-        if (otpCode.length === 6) {
-            navigate("/reset-password");
+        if (otpCode.length !== 6) {
+            toast.warning("Vui lòng nhập đủ 6 số OTP!");
+            return;
+        }
+        try {
+            const { email } = values;
+            const payload = {
+                otp: otpCode,
+                email,
+            };
+            const res = await api.post("/auth/verify-otp", payload);
+            navigate("/auth/reset-password", {
+                state: { resetToken: res.data.data.resetToken },
+            });
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Lỗi hệ thống!");
+        }
+    };
+    const handleResendOTP = async () => {
+        try {
+            const { email } = values;
+            await api.post("/auth/forgot-password", {
+                email,
+            });
+            toast.success("Mã OTP mới đã được gửi đến email!");
+            setOtp(["", "", "", "", "", ""]);
+        } catch (error) {
+            toast.error(
+                error.response?.data?.message || "Không thể gửi lại mã OTP!",
+            );
         }
     };
 
@@ -70,7 +101,10 @@ const VerifyOTP = () => {
                         Xác thực
                     </button>
 
-                    <button className="btn btn-light w-100 border text-muted fw-semibold mb-3">
+                    <button
+                        onClick={handleResendOTP}
+                        className="btn btn-light w-100 border text-muted fw-semibold mb-3"
+                    >
                         Gửi lại mã
                     </button>
 
