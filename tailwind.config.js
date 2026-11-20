@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'Segoe UI', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'Segoe UI', 'sans-serif'],
       },
       colors: {
         risova: {

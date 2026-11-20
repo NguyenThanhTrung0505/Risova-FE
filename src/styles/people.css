@@ -1,0 +1,377 @@
+.risova-personnel-editor-fields {
+  gap: 18px 20px;
+}
+
+.risova-personnel-page > .risova-tabs {
+  margin-top: 8px;
+  padding-left: 4px;
+}
+
+.risova-personnel-page > .risova-tabs button {
+  padding-inline: 14px;
+}
+
+.risova-personnel-page > .risova-personnel-table {
+  margin-top: 28px;
+  min-height: max(350px, calc(100dvh - 276px));
+}
+
+.risova-personnel-table .risova-table-toolbar {
+  gap: 12px;
+  padding: 12px 14px 13px;
+}
+
+.risova-content .risova-personnel-table .risova-table-toolbar :is(input, select):not([type=checkbox]):not([type=range]) {
+  min-height: 44px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #5e7288;
+}
+
+.risova-personnel-short-toolbar > div {
+  max-width: 665px;
+}
+
+.risova-personnel-short-toolbar select {
+  min-width: min(100%, 220px);
+}
+
+.risova-personnel-table > .overflow-x-auto {
+  padding: 0 14px;
+}
+
+.risova-personnel-table table {
+  overflow: hidden;
+  border: 1px solid var(--risova-border);
+  border-radius: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.risova-content .risova-personnel-table table th {
+  padding: 14px 7px;
+  color: var(--risova-primary);
+  font-weight: 600;
+  white-space: normal;
+}
+
+.risova-content .risova-personnel-table table th:first-child {
+  width: 11%;
+}
+
+.risova-content .risova-personnel-table table td {
+  padding: 12px 5px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--risova-border);
+}
+
+.risova-content .risova-personnel-table table tr:last-child td {
+  border-bottom: 0;
+}
+
+.risova-personnel-table .risova-status-badge {
+  min-width: min(100%, 132px);
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.risova-personnel-row-action {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.risova-personnel-row-action:hover {
+  background-color: #edf2fa;
+}
+
+.risova-native-dialog:has(.risova-person-detail) {
+  margin-top: min(12dvh, 125px);
+  transform: translateX(5%);
+}
+
+.risova-native-dialog:has(.risova-person-detail) .risova-dialog-heading {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.risova-native-dialog:has(.risova-person-detail) .risova-dialog-body {
+  padding-top: 8px;
+}
+
+.risova-person-detail .risova-form-actions {
+  margin-top: 12px;
+  padding-top: 15px;
+}
+
+.risova-person-detail .risova-form-actions button {
+  flex: 1;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit) {
+  margin-top: min(16.6dvh, 171px);
+  transform: translateX(11%);
+}
+
+.risova-native-dialog:has(.risova-personnel-category) {
+  margin-top: min(24.4dvh, 250px);
+  transform: translateX(8%);
+}
+
+.risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) .risova-dialog-heading {
+  padding: 25px 40px 12px;
+  border-bottom: 0;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) .risova-dialog-heading h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) .risova-dialog-heading button {
+  display: none;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) .risova-dialog-body {
+  padding: 4px 40px 38px;
+}
+
+.risova-native-dialog:has(.risova-personnel-edit) .risova-dialog-body {
+  padding-inline: 60px;
+}
+
+.risova-personnel-edit .risova-personnel-editor-fields {
+  gap: 18px;
+}
+
+:is(.risova-personnel-edit, .risova-personnel-category) label {
+  margin-bottom: 7px;
+  color: var(--risova-ink);
+  font-size: 14px;
+}
+
+:is(.risova-personnel-edit, .risova-personnel-category) :is(input, select) {
+  min-height: 40px;
+  padding: 7px 14px;
+  border-width: 2px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+:is(.risova-personnel-edit, .risova-personnel-category) .risova-form-actions {
+  gap: 40px;
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+:is(.risova-personnel-edit, .risova-personnel-category) .risova-form-actions button {
+  min-width: min(129px, 44%);
+  min-height: 36px;
+  font-weight: 600;
+}
+
+.risova-content > .risova-personal-profile {
+  max-width: 950px;
+}
+
+.risova-personal-profile > div:first-child > p {
+  color: #66788a;
+  margin-top: 0;
+}
+
+.risova-personal-summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 22px;
+  margin-top: 26px;
+  min-height: 90px;
+  border-radius: 10px;
+  background: var(--risova-ink);
+  color: white;
+}
+
+.risova-personal-summary .risova-avatar {
+  width: 50px;
+  height: 50px;
+  background: var(--risova-primary);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.risova-personal-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.risova-personal-identity h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.risova-personal-identity p {
+  margin-top: 6px;
+  color: var(--risova-surface);
+  font-size: 10px;
+}
+
+.risova-personal-form {
+  margin-top: 44px;
+  padding: 24px 34px;
+  border: 1px solid var(--risova-border);
+  border-radius: 10px;
+  background: white;
+}
+
+.risova-personal-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 15px;
+}
+
+.risova-personal-fields label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.risova-content .risova-personal-fields :is(input, select):not([type=checkbox]):not([type=range]) {
+  width: 100%;
+  height: 40px;
+  padding: 7px 14px;
+  border: 2px solid var(--risova-border);
+  border-radius: 10px;
+  color: #66788a;
+  background-color: white;
+  font-size: 14px;
+}
+
+.risova-personal-form footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.risova-personal-form footer button {
+  min-width: 129px;
+  min-height: 36px;
+  border-radius: 5px;
+  background: var(--risova-primary);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risova-personal-form footer button:hover {
+  background: #305b8e;
+}
+
+.risova-native-dialog:has(.risova-personnel-create) {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.risova-native-dialog:has(.risova-personnel-create) .risova-dialog-heading {
+  border-bottom: 0;
+  padding: 19px 20px 10px;
+}
+
+.risova-native-dialog:has(.risova-personnel-create) .risova-dialog-heading h2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 34px;
+}
+
+.risova-native-dialog:has(.risova-personnel-create) .risova-dialog-heading button {
+  display: none;
+}
+
+.risova-native-dialog:has(.risova-personnel-create) .risova-dialog-body {
+  padding: 6px 20px 40px;
+}
+
+.risova-personnel-create label {
+  margin-bottom: 7px;
+  color: var(--risova-ink);
+  font-size: 14px;
+}
+
+.risova-personnel-create :is(input, select) {
+  min-height: 40px;
+  padding: 8px 15px;
+  border-width: 2px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.risova-personnel-create input::placeholder,
+.risova-personnel-create select:invalid {
+  color: #66788a;
+}
+
+.risova-personnel-create .risova-form-actions {
+  gap: 40px;
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.risova-personnel-create .risova-form-actions button {
+  min-width: 129px;
+  min-height: 36px;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .risova-personal-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .risova-personal-summary {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .risova-personal-form {
+    margin-top: 22px;
+    padding: 18px;
+  }
+
+  .risova-personnel-create .risova-form-actions {
+    gap: 12px;
+  }
+
+  .risova-personnel-create .risova-form-actions button {
+    min-width: 95px;
+  }
+}
+
+@media (max-width: 740px), (max-height: 830px) {
+  .risova-native-dialog:has(.risova-person-detail, .risova-personnel-edit, .risova-personnel-category) {
+    margin-top: auto;
+    transform: none;
+  }
+
+  .risova-native-dialog:has(.risova-personnel-edit, .risova-personnel-category) :is(.risova-dialog-heading, .risova-dialog-body) {
+    padding-inline: 20px;
+  }
+
+  :is(.risova-personnel-edit, .risova-personnel-category) .risova-form-actions {
+    gap: 12px;
+  }
+}

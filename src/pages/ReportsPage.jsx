@@ -1,154 +1,72 @@
-import React from 'react';
+import { useState } from 'react';
+import { Download, Search } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useData } from '../context/DataContext';
-import {
-  BarChart3,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  DollarSign,
-  Activity,
-  Layers,
-  Award
-} from 'lucide-react';
 
-export default function ReportsPage() {
+const money = value => Number(value || 0).toLocaleString('vi-VN') + ' đ';
+export default function ReportsPage({ title = 'Báo cáo và phân tích', subtitle = 'Chi phí, tiến độ và hiệu suất vận hành của hệ thống thiết bị.', headerAction = null }) {
   const { data } = useData();
-
-  // Metrics
-  const kpis = [
-    { label: 'Hiệu suất thiết bị tổng thể (OEE)', value: '87.4%', change: '+2.1%', isGood: true, sub: 'Mục tiêu: > 85%' },
-    { label: 'Thời gian trung bình giữa 2 sự cố (MTBF)', value: '428 giờ', change: '+35 giờ', isGood: true, sub: 'Hoạt động liên tục ổn định' },
-    { label: 'Thời gian sửa chữa trung bình (MTTR)', value: '2.4 giờ', change: '-0.6 giờ', isGood: true, sub: 'Tốc độ khắc phục nhanh' },
-    { label: 'Tỷ lệ bảo trì đúng hạn (PM Compliance)', value: '95.8%', change: '+1.4%', isGood: true, sub: 'Theo dõi 24 đợt bảo dưỡng' }
-  ];
-
-  const costBreakdown = [
-    { month: 'T1', labor: 14.5, parts: 22.0 },
-    { month: 'T2', labor: 12.0, parts: 18.5 },
-    { month: 'T3', labor: 16.0, parts: 29.0 },
-    { month: 'T4', labor: 13.5, parts: 21.0 },
-    { month: 'T5', labor: 15.0, parts: 25.5 },
-    { month: 'T6', labor: 11.8, parts: 19.2 }
-  ];
-
-  return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
-      {/* Header */}
-      <div>
-        <h1 className="text-page-title font-bold text-[#112D4E]">
-          Báo cáo Phân tích Độ tin cậy & Hiệu suất CMMS
-        </h1>
-        <p className="text-body text-[#64748B] mt-0.5">
-          Thống kê các chỉ số vận hành trọng yếu MTTR, MTBF, OEE và phân tích chi phí bảo trì Nhà máy Bắc Ninh
-        </p>
-      </div>
-
-      {/* 4 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi, idx) => (
-          <div key={idx} className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#64748B]">{kpi.label}</span>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                  {kpi.change}
-                </span>
-              </div>
-              <div className="text-2xl font-bold text-[#112D4E] mt-2">{kpi.value}</div>
-            </div>
-            <div className="text-[11px] text-slate-400 mt-3 pt-2 border-t">
-              {kpi.sub}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Cost Analysis Chart */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200/80 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-card-title font-bold text-[#112D4E]">Chi phí bảo trì 6 tháng gần nhất</h3>
-              <p className="text-caption text-[#64748B]">Chi phí nhân công và vật tư thay thế (Triệu VNĐ)</p>
-            </div>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#3F72AF]"></span> Phụ tùng</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#DBE2EF]"></span> Nhân công</span>
-            </div>
-          </div>
-
-          <div className="h-56 flex items-end justify-between gap-4 pt-6 border-b border-slate-200 px-4">
-            {costBreakdown.map((item, idx) => {
-              const maxVal = 50;
-              const partsHeight = `${(item.parts / maxVal) * 100}%`;
-              const laborHeight = `${(item.labor / maxVal) * 100}%`;
-
-              return (
-                <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
-                  <div className="text-[10px] font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition">
-                    {(item.parts + item.labor).toFixed(1)} tr
-                  </div>
-                  <div className="w-full max-w-[36px] flex flex-col items-center justify-end h-full">
-                    <div style={{ height: partsHeight }} className="w-full bg-[#3F72AF] rounded-t-sm"></div>
-                    <div style={{ height: laborHeight }} className="w-full bg-[#DBE2EF]"></div>
-                  </div>
-                  <span className="text-xs font-bold text-[#112D4E] mt-2">{item.month}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Work Order Breakdown by Category */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-card-title font-bold text-[#112D4E]">Phân bổ Loại lệnh việc (Work Order Mix)</h3>
-            <p className="text-caption text-[#64748B]">Tỷ lệ chuẩn công nghiệp khuyến nghị: &gt; 80% Bảo trì định kỳ (PM)</p>
-
-            <div className="mt-6 space-y-4">
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-[#3F72AF]">Bảo trì định kỳ (PM)</span>
-                  <span className="font-bold">65% (Lý tưởng: 80%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-[#3F72AF] h-full rounded-full" style={{ width: '65%' }}></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-amber-600">Sửa chữa phục hồi (Repair)</span>
-                  <span className="font-bold">25%</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-amber-500 h-full rounded-full" style={{ width: '25%' }}></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-red-600">Sự cố khẩn cấp (Emergency)</span>
-                  <span className="font-bold">10% (Cần giảm &lt; 5%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-red-500 h-full rounded-full" style={{ width: '10%' }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100 mt-6 flex items-center gap-3">
-            <Award className="w-6 h-6 text-[#3F72AF] shrink-0" />
-            <p className="text-xs text-slate-700 leading-snug">
-              Hệ thống IoT phát hiện sớm bất thường giúp giảm <strong>38%</strong> các ca dừng máy khẩn cấp đột xuất trong tháng vừa qua.
-            </p>
-          </div>
-        </div>
+  const dates = data.work_orders.map(order => (order.created_at || order.due_date || '').slice(0,10)).filter(Boolean).sort();
+  const initialRange = {from:dates[0] || '',to:dates.at(-1) || '',location:'ALL'};
+  const [draft, setDraft] = useState(initialRange);
+  const [filters, setFilters] = useState(initialRange);
+  const [error, setError] = useState('');
+  const withinRange = date => (!filters.from || String(date).slice(0,10) >= filters.from) && (!filters.to || String(date).slice(0,10) <= filters.to);
+  const assets = data.assets.filter(asset => filters.location === 'ALL' || String(asset.location_id) === filters.location);
+  const orders = data.work_orders.filter(order => withinRange(order.created_at || order.due_date) && assets.some(asset => asset.id === order.asset_id));
+  const completed = orders.filter(order => ['COMPLETED','CLOSED'].includes(order.status));
+  const overdue = orders.filter(order => order.due_date && new Date(order.due_date + 'T23:59:59') < new Date() && !['COMPLETED','CLOSED','CANCELLED'].includes(order.status));
+  const totalHours = orders.reduce((sum,order) => sum + Number(order.labor_hours || 0),0);
+  const totalCost = orders.reduce((sum,order) => sum + Number(order.actual_cost || order.estimated_cost || 0),0);
+  const chartData = orders.map(order => ({name:order.wo_code.split('-').at(-1),cost:Number(order.actual_cost || order.estimated_cost || 0) / 1e6,hours:Number(order.labor_hours || 0)}));
+  const usageData = data.spare_parts.map(part => ({
+    name:part.part_code,
+    quantity:(data.inventory_transactions || []).filter(transaction => transaction.part_id === part.id && transaction.transaction_type === 'ISSUE' && withinRange(transaction.created_at) && (filters.location === 'ALL' || orders.some(order => order.id === transaction.work_order_id))).reduce((sum,transaction) => sum + Number(transaction.quantity || 0),0)
+  }));
+  const rows = assets.map(asset => {
+    const work = orders.filter(order => order.asset_id === asset.id);
+    return {...asset,orderCount:work.length,hours:work.reduce((sum,order) => sum + Number(order.labor_hours || 0),0),cost:work.reduce((sum,order) => sum + Number(order.actual_cost || order.estimated_cost || 0),0)};
+  });
+  const exportCsv = () => {
+    const cell = value => '"' + String(value).replace(/"/g,'""') + '"';
+    const csv = [['Thiết bị','Mã thiết bị','Sức khỏe (%)','Số lệnh việc','Giờ công bảo trì','Chi phí (đ)'],...rows.map(row => [row.name,row.asset_code,row.health_score,row.orderCount,row.hours,row.cost])].map(row => row.map(cell).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv],{type:'text/csv;charset=utf-8;'}));
+    const link = document.createElement('a');
+    link.href = url;link.download = 'risova-bao-cao-' + (filters.to || 'tong-hop') + '.csv';link.click();setTimeout(() => URL.revokeObjectURL(url),1000);
+  };
+  return <div className="risova-page space-y-5">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div><h1>{title}</h1><p className="text-slate-500">{subtitle}</p></div>
+      <div className="flex flex-wrap gap-2">
+        {headerAction}
+        <button onClick={exportCsv} className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded text-xs"><Download size={15} />Tải CSV</button>
       </div>
     </div>
-  );
+    <form className="bg-white border border-slate-200 rounded-lg p-4" onSubmit={event => {event.preventDefault();if(draft.from && draft.to && draft.from > draft.to){setError('Ngày kết thúc phải bằng hoặc sau ngày bắt đầu.');return;}setFilters({...draft});setError('');}}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end">
+        <div><label htmlFor="report-from" className="block text-[11px] text-slate-500 mb-1">Từ ngày</label><input id="report-from" type="date" value={draft.from} onChange={event => setDraft({...draft,from:event.target.value})} className="w-full px-3 py-2 border border-slate-200 text-xs" /></div>
+        <div><label htmlFor="report-to" className="block text-[11px] text-slate-500 mb-1">Đến ngày</label><input id="report-to" type="date" value={draft.to} onChange={event => setDraft({...draft,to:event.target.value})} className="w-full px-3 py-2 border border-slate-200 text-xs" /></div>
+        <div><label htmlFor="report-location" className="block text-[11px] text-slate-500 mb-1">Phạm vi báo cáo</label><select id="report-location" value={draft.location} onChange={event => setDraft({...draft,location:event.target.value})} className="w-full px-3 py-2 border border-slate-200 text-xs"><option value="ALL">Toàn nhà máy</option>{data.locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}</select></div>
+        <button type="submit" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#3F72AF] text-white text-xs rounded h-9"><Search size={14} />Xem báo cáo</button>
+      </div>
+      {error && <p role="alert" className="text-xs text-red-500 mt-2">{error}</p>}
+    </form>
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      {[['Tỷ lệ hoàn thành', (orders.length ? Math.round(completed.length / orders.length * 100) : 0) + '%',completed.length + '/' + orders.length + ' lệnh việc'],['Lệnh quá hạn',overdue.length,'Cần ưu tiên xử lý'],['Giờ công bảo trì',totalHours.toLocaleString('vi-VN') + ' giờ','Tổng giờ công của lệnh việc'],['Chi phí bảo trì',(totalCost / 1e6).toLocaleString('vi-VN',{maximumFractionDigits:1}) + ' tr đ','Thực tế hoặc dự toán khi chưa quyết toán']].map(([label,value,description]) => <div key={label} className="bg-white border border-slate-200 rounded-lg p-4"><p className="text-xs text-slate-500">{label}</p><strong className="block mt-2 text-2xl font-semibold">{value}</strong><p className="text-[10px] text-slate-400 mt-1">{description}</p></div>)}
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-5 min-w-0">
+        <h2 className="text-sm font-semibold mb-5">Chi phí & thời gian theo lệnh việc</h2>
+        {chartData.length ? <div className="h-72 w-full" role="img" aria-label="Biểu đồ chi phí và giờ công theo lệnh việc"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{top:10,right:5,left:-20,bottom:0}}><CartesianGrid vertical={false} stroke="#edf0f5" /><XAxis dataKey="name" tick={{fontSize:11,fill:'#7f8d9e'}} axisLine={false} tickLine={false} /><YAxis yAxisId="cost" tick={{fontSize:10,fill:'#7f8d9e'}} axisLine={false} tickLine={false} /><YAxis yAxisId="hours" orientation="right" hide /><Tooltip contentStyle={{fontSize:12,borderRadius:6,borderColor:'#dbe2ef'}} /><Legend wrapperStyle={{fontSize:11,paddingTop:12}} /><Bar yAxisId="cost" dataKey="cost" name="Chi phí (triệu đ)" fill="#5075aa" radius={[2,2,0,0]} maxBarSize={34} /><Bar yAxisId="hours" dataKey="hours" name="Giờ công (giờ)" fill="#e4a43a" radius={[2,2,0,0]} maxBarSize={34} /></BarChart></ResponsiveContainer></div> : <p className="risova-empty-state">Chưa có lệnh việc trong khoảng thời gian này.</p>}
+      </div>
+      <div className="bg-white border border-slate-200 rounded-lg p-5 min-w-0">
+        <h2 className="text-sm font-semibold mb-5">Tiêu thụ vật tư</h2>
+        <div className="h-72 w-full" role="img" aria-label="Số lượng vật tư đã xuất kho"><ResponsiveContainer width="100%" height="100%"><LineChart data={usageData} margin={{top:10,right:5,left:-25,bottom:0}}><CartesianGrid vertical={false} stroke="#edf0f5" /><XAxis dataKey="name" tick={{fontSize:9,fill:'#7f8d9e'}} tickFormatter={value => value.length > 9 ? value.slice(0,8) + '…' : value} axisLine={false} tickLine={false} /><YAxis allowDecimals={false} tick={{fontSize:10,fill:'#7f8d9e'}} axisLine={false} tickLine={false} /><Tooltip contentStyle={{fontSize:11,borderRadius:6,borderColor:'#dbe2ef'}} /><Line type="monotone" dataKey="quantity" name="Số lượng xuất" stroke="#60b58b" strokeWidth={2} dot={{r:3,fill:'white'}} /></LineChart></ResponsiveContainer></div>
+      </div>
+    </div>
+    <section className="bg-white border border-slate-200 rounded-lg p-5">
+      <h2 className="text-sm font-semibold">Hiệu suất thiết bị</h2><p className="text-xs text-slate-400 mt-1 mb-4">Tổng hợp công việc và chi phí trong phạm vi báo cáo.</p>
+      <div className="overflow-x-auto"><table className="w-full text-left whitespace-nowrap"><thead><tr>{['Thiết bị','Sức khỏe','Số lệnh việc','Giờ công','Chi phí'].map(label => <th key={label} className="px-4">{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.id} className="border-b border-slate-100"><td className="px-4 font-medium">{row.asset_code} · {row.name}</td><td className="px-4 text-slate-500">{row.health_score}%</td><td className="px-4 text-slate-500">{row.orderCount}</td><td className="px-4 text-slate-500">{row.hours.toLocaleString('vi-VN')} giờ</td><td className="px-4 text-slate-500">{money(row.cost)}</td></tr>)}</tbody></table>{!rows.length && <p className="risova-empty-state">Không có thiết bị trong phạm vi đã chọn.</p>}</div>
+    </section>
+  </div>;
 }
-

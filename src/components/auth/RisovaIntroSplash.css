@@ -1,0 +1,499 @@
+.risova-intro-overlay {
+  --intro-logo-size: clamp(136px, 28vw, 180px);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.risova-intro-overlay.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Stage 1 (0.00s -> 1.50s): White horizontal beam piercing the lightbulb     */
+/* -------------------------------------------------------------------------- */
+.risova-intro-beam-wrap {
+  position: absolute;
+  left: 0;
+  top: calc(50% - 0.03125 * var(--intro-logo-size));
+  width: calc(50% - 0.2605 * var(--intro-logo-size));
+  height: 4px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.risova-intro-beam-absorb {
+  position: absolute;
+  inset: 0;
+  transform-origin: right center;
+  animation: risova-beam-absorb 380ms cubic-bezier(0.4, 0, 0.2, 1) 1500ms forwards;
+}
+
+.risova-intro-beam-line {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0%, #ffffff 78%, #ffffff 100%);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.9),
+    0 0 24px rgba(0, 170, 252, 0.55);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: risova-beam-travel 1500ms cubic-bezier(0.22, 0.08, 0.32, 1) 0ms forwards;
+}
+
+.risova-intro-beam-head-rail {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation:
+    risova-beam-head 1500ms cubic-bezier(0.22, 0.08, 0.32, 1) 0ms forwards,
+    risova-fade-out 120ms ease 1500ms forwards;
+}
+
+.risova-intro-beam-spark {
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: #ffffff;
+  box-shadow:
+    0 0 12px 4px #ffffff,
+    0 0 28px 8px rgba(0, 170, 252, 0.85);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Centered Logo Anchor & Scaler (exact 50vw/50vh lock for 0px beam drift)    */
+/* -------------------------------------------------------------------------- */
+.risova-intro-center-anchor {
+  position: relative;
+  width: var(--intro-logo-size);
+  height: var(--intro-logo-size);
+  flex-shrink: 0;
+}
+
+.risova-intro-ambient-glow {
+  position: absolute;
+  inset: -42%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 170, 252, 0.42) 0%,
+    rgba(0, 170, 252, 0.12) 45%,
+    transparent 72%
+  );
+  opacity: 0;
+  pointer-events: none;
+  animation:
+    risova-fade-in 1230ms ease 1520ms forwards,
+    risova-glow-soften 650ms cubic-bezier(0.22, 1, 0.36, 1) 3200ms forwards;
+}
+
+.risova-intro-logo-scaler {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  animation: risova-logo-shrink 650ms cubic-bezier(0.22, 1, 0.36, 1) 3200ms forwards;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Stage 2 (1.50s -> 2.75s): Bulb impact, ECG heartbeat & outline activation  */
+/* -------------------------------------------------------------------------- */
+.risova-intro-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: risova-fade-out 450ms ease 2780ms forwards;
+}
+
+.risova-intro-bulb-ghost-outline {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.risova-intro-bulb-ghost-bar {
+  fill: rgba(255, 255, 255, 0.12);
+}
+
+.risova-intro-impact-ring {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: risova-impact-ring 420ms cubic-bezier(0.16, 1, 0.3, 1) 1500ms forwards;
+}
+
+.risova-intro-impact-dot {
+  fill: #ffffff;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: risova-impact-dot 420ms cubic-bezier(0.16, 1, 0.3, 1) 1500ms forwards;
+}
+
+.risova-intro-bulb-arc {
+  stroke: #00aafc;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: risova-draw-path 930ms cubic-bezier(0.25, 0.85, 0.35, 1) 1520ms forwards;
+}
+
+.risova-intro-base-bar {
+  fill: #e2e8f0;
+  opacity: 0;
+}
+
+.risova-intro-base-bar--1 {
+  animation: risova-bar-light 260ms ease 2050ms forwards;
+}
+
+.risova-intro-base-bar--2 {
+  animation: risova-bar-light 260ms ease 2180ms forwards;
+}
+
+.risova-intro-base-bar--3 {
+  animation: risova-bar-light 260ms ease 2300ms forwards;
+}
+
+.risova-intro-ecg-group {
+  transform-box: view-box;
+  transform-origin: 98px 93.8px;
+  animation: risova-ecg-beat 880ms cubic-bezier(0.37, 0, 0.25, 1) 1870ms forwards;
+}
+
+.risova-intro-ecg-path {
+  stroke: #ffffff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation:
+    risova-draw-path 580ms cubic-bezier(0.22, 1, 0.36, 1) 1500ms forwards,
+    risova-ecg-tint 350ms ease 2400ms forwards;
+}
+
+.risova-intro-ecg-spark-trace {
+  stroke: #ffffff;
+  stroke-width: 6.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16 100;
+  stroke-dashoffset: 116;
+  opacity: 0;
+  animation: risova-ecg-spark 800ms ease-in-out 1950ms forwards;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Stage 3 (2.75s -> 4.45s): Official logo reveal, shrink & RISOVA wordmark   */
+/* -------------------------------------------------------------------------- */
+.risova-intro-logo-badge {
+  position: absolute;
+  inset: 0;
+  border-radius: 21%;
+  background: #ffffff;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.96);
+  box-shadow:
+    0 0 46px rgba(0, 170, 252, 0.42),
+    0 18px 42px rgba(0, 0, 0, 0.6);
+  animation: risova-logo-reveal 480ms cubic-bezier(0.22, 1, 0.36, 1) 2750ms forwards;
+}
+
+.risova-intro-logo-badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.risova-intro-wordmark {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 42px);
+  transform: translate(-50%, 16px);
+  margin: 0;
+  font-size: clamp(26px, 4.4vw, 38px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.44em;
+  padding-left: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #ffffff;
+  opacity: 0;
+  filter: blur(6px);
+  pointer-events: none;
+  animation: risova-wordmark-reveal 760ms cubic-bezier(0.22, 1, 0.36, 1) 3680ms forwards;
+}
+
+.risova-intro-wordmark .is-accent {
+  color: #00aafc;
+  text-shadow: 0 0 24px rgba(0, 170, 252, 0.45);
+}
+
+/* Skip button */
+.risova-intro-skip {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  animation: risova-fade-in 300ms ease 350ms forwards;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.risova-intro-skip:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(0, 170, 252, 0.5);
+  color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Keyframes                                                                  */
+/* -------------------------------------------------------------------------- */
+@keyframes risova-beam-travel {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes risova-beam-head {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes risova-beam-absorb {
+  0% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+@keyframes risova-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes risova-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes risova-glow-soften {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.55;
+    transform: scale(0.72);
+  }
+}
+
+@keyframes risova-impact-ring {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+
+@keyframes risova-impact-dot {
+  0% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  65% {
+    opacity: 0.85;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@keyframes risova-draw-path {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes risova-bar-light {
+  from {
+    opacity: 0;
+    transform: scaleX(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes risova-ecg-beat {
+  0% {
+    transform: scaleY(1);
+  }
+  20% {
+    transform: scaleY(1.44);
+  }
+  40% {
+    transform: scaleY(0.66);
+  }
+  60% {
+    transform: scaleY(1.28);
+  }
+  78% {
+    transform: scaleY(0.84);
+  }
+  90% {
+    transform: scaleY(1.12);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes risova-ecg-tint {
+  to {
+    stroke: #00aafc;
+  }
+}
+
+@keyframes risova-ecg-spark {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 116;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -16;
+  }
+}
+
+@keyframes risova-logo-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes risova-logo-shrink {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-28px) scale(0.54);
+  }
+}
+
+@keyframes risova-logo-shrink-mobile {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-24px) scale(0.56);
+  }
+}
+
+@keyframes risova-wordmark-reveal {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  .risova-intro-logo-scaler {
+    animation-name: risova-logo-shrink-mobile;
+  }
+
+  .risova-intro-wordmark {
+    top: calc(50% + 34px);
+    letter-spacing: 0.36em;
+    padding-left: 0.18em;
+  }
+
+  .risova-intro-skip {
+    top: 14px;
+    right: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .risova-intro-overlay *,
+  .risova-intro-overlay *::before,
+  .risova-intro-overlay *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

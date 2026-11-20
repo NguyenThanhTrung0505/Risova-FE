@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components -- The context providers and their hooks share the same context instances. */
+import { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_DATA, ENUMS } from '../mockData/initialData';
+import { workOrderReasonFields } from '../utils/workOrders';
 
 const DataContext = createContext(null);
 const AuthContext = createContext(null);
@@ -7,6 +9,8 @@ const AuthContext = createContext(null);
 const STORAGE_KEY = 'risova_cmms_database_v1';
 const AUTH_KEY = 'risova_cmms_current_user';
 const AUTH_STATUS_KEY = 'risova_cmms_is_authenticated';
+let lastRecordId = Date.now();
+const nextRecordId = () => ++lastRecordId;
 
 export function DataProvider({ children }) {
   // Load data from localStorage or fallback to INITIAL_DATA
@@ -70,7 +74,7 @@ export function DataProvider({ children }) {
     });
 
     const workOrder = {
-      id: Date.now(),
+      id: nextRecordId(),
       wo_code: woCode,
       asset_id: asset.id,
       asset_code: asset.asset_code,
@@ -93,8 +97,8 @@ export function DataProvider({ children }) {
       scheduled_end: newWo.scheduled_end || new Date(Date.now() + 86400000 * 2).toISOString(),
       actual_start: null,
       actual_end: null,
-      labor_hours: Number(newWo.labor_hours || 2.5),
-      estimated_cost: Number(newWo.estimated_cost || 1500000),
+      labor_hours: Number(newWo.labor_hours ?? 0),
+      estimated_cost: Number(newWo.estimated_cost ?? 0),
       actual_cost: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -133,7 +137,7 @@ export function DataProvider({ children }) {
 
     // Audit log
     const audit = {
-      id: Date.now(),
+      id: nextRecordId(),
       user_id: currentUser ? currentUser.id : 1,
       user_name: currentUser ? currentUser.full_name : 'Quản lý',
       action: 'CREATE_WORK_ORDER',
@@ -147,7 +151,7 @@ export function DataProvider({ children }) {
 
     // Activity
     const activity = {
-      id: Date.now(),
+      id: nextRecordId(),
       type: 'WO_CREATE',
       user: currentUser ? currentUser.full_name : 'Quản trị viên',
       title: `${currentUser ? currentUser.full_name : 'Người dùng'} tạo lệnh việc ${woCode}`,
@@ -181,8 +185,10 @@ export function DataProvider({ children }) {
       }
       if (newStatus === 'COMPLETED' || newStatus === 'CLOSED') {
         extra.actual_end = new Date().toISOString();
-        extra.closed_at = new Date().toISOString();
       }
+      if (newStatus === 'CLOSED') extra.closed_at = new Date().toISOString();
+      const reasonField = workOrderReasonFields[newStatus];
+      if (reasonField && note.trim()) extra[reasonField] = note.trim();
 
       // If CANCELLED, release reserved parts
       let updatedSpareParts = [...prev.spare_parts];
@@ -208,7 +214,7 @@ export function DataProvider({ children }) {
         ...wo,
         status: newStatus,
         ...extra,
-        resolution_notes: note ? (wo.resolution_notes ? wo.resolution_notes + '\n' + note : note) : wo.resolution_notes,
+        resolution_notes: !reasonField && note ? (wo.resolution_notes ? wo.resolution_notes + '\n' + note : note) : wo.resolution_notes,
         parts: updatedParts,
         updated_at: new Date().toISOString()
       };
@@ -217,7 +223,7 @@ export function DataProvider({ children }) {
 
       // Audit log
       const audit = {
-        id: Date.now(),
+        id: nextRecordId(),
         user_id: currentUser ? currentUser.id : 1,
         user_name: currentUser ? currentUser.full_name : 'Người dùng',
         action: 'UPDATE_STATUS',
@@ -231,7 +237,7 @@ export function DataProvider({ children }) {
 
       // Activity
       const activity = {
-        id: Date.now(),
+        id: nextRecordId(),
         type: newStatus === 'COMPLETED' ? 'WO_COMPLETE' : 'WO_UPDATE',
         user: currentUser ? currentUser.full_name : 'Kỹ thuật viên',
         title: `${currentUser ? currentUser.full_name : 'Kỹ thuật viên'} cập nhật ${wo.wo_code} sang ${ENUMS.WO_STATUSES[newStatus]?.label || newStatus}`,
@@ -331,7 +337,7 @@ export function DataProvider({ children }) {
 
       // Transaction log
       const txn = {
-        id: Date.now(),
+        id: nextRecordId(),
         part_id: part.id,
         part_code: part.part_code,
         part_name: part.name,
@@ -347,7 +353,7 @@ export function DataProvider({ children }) {
 
       // Activity
       const activity = {
-        id: Date.now(),
+        id: nextRecordId(),
         type: 'INV_ISSUE',
         user: currentUser ? currentUser.full_name : 'Phạm Gia Huy',
         title: `${currentUser ? currentUser.full_name : 'Thủ kho'} xuất ${qty} ${part.unit} ${part.name}`,
@@ -393,7 +399,7 @@ export function DataProvider({ children }) {
   };
 
   // 6. IOT SENSOR SIMULATION & ALERT TRIGGER (ĐÃ SỬA: TÍNH ĐIỂM DYNAMIC & KHÔNG TRÙNG LẶP ALERT)
-  const simulateIoTMeasurement = (assetId, metricType, value, unit) => {
+  const simulateIoTMeasurement = (assetId, metricType, value, unit, source = 'IOT_SENSOR', recordedBy = null) => {
     const numVal = Number(value);
     const asset = data.assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -427,13 +433,13 @@ export function DataProvider({ children }) {
     }
 
     const logEntry = {
-      id: Date.now(),
+      id: nextRecordId(),
       asset_id: assetId,
       metric_type: metricType,
       unit: unit,
       value: numVal,
-      source: 'IOT_SENSOR',
-      recorded_by: null,
+      source,
+      recorded_by: recordedBy,
       recorded_at: new Date().toISOString()
     };
 
@@ -477,7 +483,7 @@ export function DataProvider({ children }) {
         } else {
           // CHƯA CÓ CẢNH BÁO NÀO -> TẠO MỚI 1 DÒNG CẢNH BÁO
           const newAlert = {
-            id: Date.now(),
+            id: nextRecordId(),
             asset_id: assetId,
             threshold_id: threshold.id || 1,
             level: level,
@@ -513,7 +519,7 @@ export function DataProvider({ children }) {
       let nextActivities = prev.activities;
       if (level === 'DANGER' && shouldShowToast) {
         const iotActivity = {
-          id: Date.now(),
+          id: nextRecordId(),
           type: 'IOT_ALERT',
           user: 'Hệ thống IoT',
           title: `Hệ thống ghi nhận cảnh báo nguy hiểm tại ${asset.asset_code}`,
@@ -566,7 +572,7 @@ export function DataProvider({ children }) {
 
   // 8. ASSET CRUD
   const createAsset = (assetData) => {
-    const newId = Date.now();
+    const newId = nextRecordId();
     const asset = {
       id: newId,
       asset_code: assetData.asset_code || `EQ-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -587,8 +593,10 @@ export function DataProvider({ children }) {
         model: assetData.model || 'Standard',
         serial_number: assetData.serial_number || `SN-${Date.now().toString().slice(-6)}`,
         description: assetData.description || '',
-        purchase_price: Number(assetData.purchase_price || 50000000),
-        purchase_date: assetData.purchase_date || new Date().toISOString().split('T')[0]
+        purchase_price: Number(assetData.purchase_price ?? 0),
+        purchase_date: assetData.purchase_date || new Date().toISOString().split('T')[0],
+        image_url: assetData.image_url || assetData.details?.image_url || '',
+        document_url: assetData.document_url || assetData.details?.document_url || ''
       }
     };
 
@@ -611,47 +619,139 @@ export function DataProvider({ children }) {
   // 9. LOCATION CRUD
   const createLocation = (loc) => {
     const newLoc = {
-      id: Date.now(),
+      id: nextRecordId(),
       code: loc.code,
       name: loc.name,
       location_type: loc.location_type || 'ZONE',
       parent_id: loc.parent_id ? Number(loc.parent_id) : null,
       description: loc.description || '',
-      is_active: true
+      is_active: loc.is_active ?? true
     };
     setData(prev => ({
       ...prev,
       locations: [...prev.locations, newLoc]
     }));
     addToast(`Đã thêm địa điểm ${loc.name}!`, 'success');
+    return newLoc;
+  };
+
+  const updateLocation = (id, updates) => {
+    setData(previous => ({
+      ...previous,
+      locations: previous.locations.map(location => location.id === id
+        ? { ...location, ...updates, parent_id: 'parent_id' in updates ? Number(updates.parent_id) || null : location.parent_id }
+        : location)
+    }));
+    addToast('Đã cập nhật địa điểm.');
   };
 
   // 10. SPARE PART CRUD & STOCK ADJUSTMENT
-  const createSparePart = (part) => {
-    const newPart = {
-      id: Date.now(),
+  const createSparePart = (input, currentUser) => {
+    const parts = Array.isArray(input) ? input : [input];
+    const newParts = parts.map(part => ({
+      id: nextRecordId(),
       part_code: part.part_code,
       name: part.name,
       unit: part.unit || 'Cái',
       quantity_in_stock: Number(part.quantity_in_stock || 0),
       reserved_quantity: 0,
-      min_stock_level: Number(part.min_stock_level || 5),
-      unit_price: Number(part.unit_price || 100000),
+      min_stock_level: Number(part.min_stock_level ?? 5),
+      unit_price: Number(part.unit_price ?? 100000),
       category: part.category || 'Phụ tùng tổng hợp',
-      is_low_stock: Number(part.quantity_in_stock || 0) <= Number(part.min_stock_level || 5)
-    };
+      description: part.description || '',
+      source: part.source || '',
+      is_active: part.is_active ?? true,
+      is_low_stock: Number(part.quantity_in_stock || 0) <= Number(part.min_stock_level ?? 5)
+    }));
+    const createdAt = new Date().toISOString();
+    const receipts = newParts.filter(part => part.quantity_in_stock > 0).map(part => ({
+      id: nextRecordId(),
+      part_id: part.id,
+      part_code: part.part_code,
+      part_name: part.name,
+      work_order_id: null,
+      wo_code: null,
+      transaction_type: 'RECEIPT',
+      quantity: part.quantity_in_stock,
+      performed_by: currentUser?.id ?? 3,
+      performed_by_name: currentUser?.full_name ?? 'Thủ kho',
+      note: part.source || 'Tồn kho ban đầu',
+      created_at: createdAt
+    }));
     setData(prev => ({
       ...prev,
-      spare_parts: [newPart, ...prev.spare_parts]
+      spare_parts: [...newParts, ...prev.spare_parts],
+      inventory_transactions: [...receipts, ...prev.inventory_transactions]
     }));
-    addToast(`Đã thêm phụ tùng ${newPart.name} vào danh mục kho!`, 'success');
+    if (newParts.length === 1) addToast(`Đã thêm ${newParts[0].name} vào danh mục kho.`);
+    else addToast(`Đã thêm ${newParts.length} vật tư vào danh mục kho.`);
+    return Array.isArray(input) ? newParts : newParts[0];
+  };
+
+  const updateSparePart = (id, updates, currentUser) => {
+    const part = data.spare_parts.find(item => item.id === id);
+    if (!part) return false;
+    const quantity = Number(updates.quantity_in_stock ?? part.quantity_in_stock);
+    if (!Number.isFinite(quantity) || quantity < (part.reserved_quantity ?? 0)) {
+      addToast('Tồn kho phải lớn hơn hoặc bằng số lượng đã giữ chỗ.', 'error');
+      return false;
+    }
+    const transactionId = nextRecordId();
+    const createdAt = new Date().toISOString();
+    setData(previous => {
+      const partAtSave = previous.spare_parts.find(item => item.id === id);
+      if (!partAtSave) return previous;
+      const stock = Number(updates.quantity_in_stock ?? partAtSave.quantity_in_stock);
+      if (stock < (partAtSave.reserved_quantity ?? 0)) return previous;
+      const next = {
+        ...partAtSave,
+        ...updates,
+        quantity_in_stock: stock,
+        id,
+        reserved_quantity: partAtSave.reserved_quantity
+      };
+      next.is_low_stock = next.quantity_in_stock <= next.min_stock_level;
+      const difference = stock - Number(partAtSave.quantity_in_stock);
+      const adjustment = {
+        id: transactionId,
+        part_id: id,
+        part_code: next.part_code,
+        part_name: next.name,
+        work_order_id: null,
+        wo_code: null,
+        transaction_type: 'ADJUSTMENT',
+        quantity: difference,
+        performed_by: currentUser?.id ?? 3,
+        performed_by_name: currentUser?.full_name ?? 'Thủ kho',
+        note: 'Cập nhật số lượng tồn kho',
+        created_at: createdAt
+      };
+      return {
+        ...previous,
+        spare_parts: previous.spare_parts.map(item => item.id === id ? next : item),
+        inventory_transactions: difference ? [adjustment, ...previous.inventory_transactions] : previous.inventory_transactions
+      };
+    });
+    addToast('Đã cập nhật vật tư.');
+    return true;
   };
 
   const adjustStock = (partId, deltaQty, reason, type = 'RECEIPT', currentUser) => {
     const qty = Number(deltaQty);
+    const part = data.spare_parts.find(item => item.id === partId);
+    if (!part || !Number.isFinite(qty) || qty <= 0) {
+      addToast('Số lượng giao dịch phải lớn hơn 0.', 'error');
+      return false;
+    }
+    const available = part.quantity_in_stock - (part.reserved_quantity || 0);
+    if (type === 'ISSUE' && qty > available) {
+      addToast('Số lượng xuất vượt tồn kho khả dụng.', 'error');
+      return false;
+    }
     setData(prev => {
       const part = prev.spare_parts.find(p => p.id === partId);
       if (!part) return prev;
+      if (type === 'ISSUE' && qty > part.quantity_in_stock - (part.reserved_quantity || 0)) return prev;
 
       const newStock = Math.max(0, part.quantity_in_stock + (type === 'ISSUE' ? -qty : qty));
       const updatedSpareParts = prev.spare_parts.map(p => {
@@ -666,7 +766,7 @@ export function DataProvider({ children }) {
       });
 
       const txn = {
-        id: Date.now(),
+        id: nextRecordId(),
         part_id: part.id,
         part_code: part.part_code,
         part_name: part.name,
@@ -686,38 +786,61 @@ export function DataProvider({ children }) {
         inventory_transactions: [txn, ...prev.inventory_transactions]
       };
     });
-    addToast(`Đã cập nhật kho thành công: ${qty > 0 ? '+' : ''}${qty}!`, 'success');
+    addToast(`Đã cập nhật kho: ${type === 'ISSUE' ? '−' : '+'}${qty}.`);
+    return true;
   };
 
   // 11. MAINTENANCE SCHEDULE CRUD
   const createMaintenanceSchedule = (schedule) => {
     const asset = data.assets.find(a => a.id === Number(schedule.asset_id)) || data.assets[0];
+    if (!asset) return null;
     const newSched = {
-      id: Date.now(),
+      id: nextRecordId(),
       asset_id: asset.id,
       asset_code: asset.asset_code,
       title: schedule.title,
       schedule_type: schedule.schedule_type || 'TIME_BASED',
       assigned_specialty_id: Number(schedule.assigned_specialty_id || 1),
-      frequency_days: Number(schedule.frequency_days || 30),
+      frequency_days: Number(schedule.frequency_days ?? 30),
       last_completed_date: null,
-      next_due_date: schedule.next_due_date || new Date(Date.now() + 86400000 * 14).toISOString(),
-      generate_lead_days: 7,
+      next_due_date: schedule.next_due_date || (schedule.schedule_type === 'METER_BASED' ? null : new Date(Date.now() + 86400000 * 14).toISOString()),
+      generate_lead_days: Number(schedule.generate_lead_days ?? 7),
       meter_interval: schedule.meter_interval ? Number(schedule.meter_interval) : null,
       last_pm_meter: null,
       next_due_meter: schedule.next_due_meter ? Number(schedule.next_due_meter) : null,
-      generate_lead_meter: 100,
-      estimated_duration_hours: Number(schedule.estimated_duration_hours || 2.0),
-      status_label: 'Sắp tới',
+      generate_lead_meter: Number(schedule.generate_lead_meter ?? 100),
+      estimated_duration_hours: Number(schedule.estimated_duration_hours ?? 2),
+      notes: schedule.notes || '',
+      status_label: schedule.is_active === false ? 'Tạm dừng' : 'Sắp tới',
       badge_color: 'success',
       display_date: schedule.display_date || 'Hàng tháng',
-      is_active: true
+      is_active: schedule.is_active ?? true,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString()
     };
     setData(prev => ({
       ...prev,
       maintenance_schedules: [newSched, ...prev.maintenance_schedules]
     }));
     addToast(`Đã lập kế hoạch bảo dưỡng định kỳ mới: ${newSched.title}!`, 'success');
+    return newSched;
+  };
+
+  const updateMaintenanceSchedule = (id, updates) => {
+    setData(previous => ({
+      ...previous,
+      maintenance_schedules: previous.maintenance_schedules.map(schedule => {
+        if (schedule.id !== id) return schedule;
+        const asset = previous.assets.find(item => item.id === Number(updates.asset_id));
+        return {
+          ...schedule,
+          ...updates,
+          asset_id: asset?.id ?? schedule.asset_id,
+          asset_code: asset?.asset_code ?? schedule.asset_code,
+          updated_at: new Date().toISOString()
+        };
+      })
+    }));
+    addToast('Đã cập nhật lịch bảo trì.');
   };
 
   // Reset to initial
@@ -725,6 +848,68 @@ export function DataProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY);
     setData(INITIAL_DATA);
     addToast('Đã khôi phục dữ liệu gốc mẫu của Nhà máy Bắc Ninh!', 'info');
+  };
+
+  const updateWorkOrder = (id, updates) => {
+    const asset = data.assets.find(item => item.id === Number(updates.asset_id));
+    setData(previous => ({ ...previous, work_orders: previous.work_orders.map(order => order.id === id ? {
+      ...order, ...updates,
+      asset_id: asset?.id || order.asset_id,
+      asset_name: asset?.name || order.asset_name,
+      asset_code: asset?.asset_code || order.asset_code,
+      updated_at: new Date().toISOString()
+    } : order) }));
+    addToast('Đã cập nhật lệnh làm việc.');
+  };
+
+  const updateThreshold = (id, updates) => {
+    setData(previous => ({ ...previous, asset_thresholds: previous.asset_thresholds.map(threshold => threshold.id === id ? { ...threshold, ...updates } : threshold) }));
+    addToast('Đã cập nhật ngưỡng cảnh báo.');
+  };
+
+  const updateUser = (id, updates) => {
+    setData(previous => ({ ...previous, users: previous.users.map(user => user.id === id ? { ...user, ...updates } : user) }));
+  };
+
+  const savePersonnel = (collection, record) => {
+    if (!['users', 'specialties', 'work_shifts'].includes(collection)) return;
+    const next = { ...record, id: record.id || nextRecordId() };
+    if (collection === 'users') {
+      next.avatar_initials = next.full_name.trim().split(/\s+/).slice(-2).map(word => word[0]).join('').toUpperCase();
+      next.is_active = next.is_active ?? true;
+      next.is_available = next.is_available ?? true;
+      next.employee_code = next.employee_code || `NV-${String(next.id).slice(-5)}`;
+    }
+    setData(previous => ({ ...previous, [collection]: record.id
+      ? previous[collection].map(item => item.id === record.id ? next : item)
+      : [...previous[collection], next] }));
+    addToast(record.id ? 'Đã lưu thay đổi.' : 'Đã thêm mới thành công.');
+  };
+
+  const createThreshold = threshold => {
+    setData(previous => ({ ...previous, asset_thresholds: [...previous.asset_thresholds, { ...threshold, id: nextRecordId() }] }));
+    addToast('Đã thêm ngưỡng giám sát.');
+  };
+
+  const deleteAsset = id => updateAsset(id, { is_archived: true, status: 'RETIRED' });
+
+  const deleteLocation = id => {
+    if (data.locations.some(location => location.parent_id === id) || data.assets.some(asset => asset.location_id === id)) {
+      addToast('Di chuyển thiết bị và vị trí con trước khi xóa vị trí này.', 'error');
+      return false;
+    }
+    setData(previous => ({ ...previous, locations: previous.locations.filter(location => location.id !== id) }));
+    return true;
+  };
+
+  const removePersonnel = (collection, id) => {
+    if (!['specialties', 'work_shifts'].includes(collection)) return false;
+    const assigned = collection === 'specialties'
+      ? data.users.some(user => Number(user.specialty_id) === id) || data.assets.some(asset => asset.required_specialty_id === id) || data.maintenance_schedules.some(schedule => schedule.assigned_specialty_id === id)
+      : data.users.some(user => Number(user.work_shift_id) === id);
+    if (assigned) { addToast('Danh mục đang được sử dụng, cần gỡ liên kết trước khi xóa.', 'error'); return false; }
+    setData(previous => ({ ...previous, [collection]: previous[collection].filter(item => item.id !== id) }));
+    return true;
   };
 
   return (
@@ -745,9 +930,20 @@ export function DataProvider({ children }) {
       createAsset,
       updateAsset,
       createLocation,
+      updateLocation,
       createSparePart,
+      updateSparePart,
       adjustStock,
       createMaintenanceSchedule,
+      updateMaintenanceSchedule,
+      updateUser,
+      updateWorkOrder,
+      updateThreshold,
+      createThreshold,
+      deleteAsset,
+      deleteLocation,
+      removePersonnel,
+      savePersonnel,
       resetToDefault
     }}>
       {children}
@@ -762,8 +958,9 @@ export function useData() {
 }
 
 export function AuthProvider({ children }) {
+  const { data, updateUser } = useData();
   // Current user: default to Minh Anh (MANAGER)
-  const [currentUser, setCurrentUser] = useState(() => {
+  const [sessionUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem(AUTH_KEY);
       if (saved) return JSON.parse(saved);
@@ -772,6 +969,7 @@ export function AuthProvider({ children }) {
     }
     return INITIAL_DATA.users[0]; // Minh Anh - MANAGER
   });
+  const currentUser = data.users.find(user => user.id === sessionUser?.id) || sessionUser;
 
   // Lưu trạng thái đăng nhập vào localStorage (mặc định lần đầu là false để hiển thị AuthPage chuẩn Figma)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -786,21 +984,51 @@ export function AuthProvider({ children }) {
     return false;
   });
 
+  const getUserForRole = (roleCode) => (
+    data.users.find(u => u.role === roleCode)
+    || INITIAL_DATA.users.find(u => u.role === roleCode)
+    || data.users[0]
+  );
+
   const loginAsRole = (roleCode) => {
-    const user = INITIAL_DATA.users.find(u => u.role === roleCode) || INITIAL_DATA.users[0];
+    const user = getUserForRole(roleCode);
     setCurrentUser(user);
     setIsAuthenticated(true);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     localStorage.setItem(AUTH_STATUS_KEY, 'true');
   };
 
+  const verifyCredentials = (email, password) => {
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+    const trimmedPassword = String(password || '').trim();
+    if (!trimmedEmail) {
+      return { ok: false, error: 'Vui lòng nhập email đăng nhập.' };
+    }
+    if (!trimmedPassword) {
+      return { ok: false, error: 'Vui lòng nhập mật khẩu.' };
+    }
+    const user = data.users.find(u => u.email.toLowerCase() === trimmedEmail);
+    if (!user || user.is_active === false || (user.password && user.password !== password)) {
+      return { ok: false, error: 'Email hoặc mật khẩu không chính xác.' };
+    }
+    return { ok: true, user };
+  };
+
   const loginWithCredentials = (email, password) => {
-    const user = INITIAL_DATA.users.find(u => u.email.toLowerCase() === email.toLowerCase()) || INITIAL_DATA.users[0];
-    setCurrentUser(user);
+    const result = verifyCredentials(email, password);
+    if (!result.ok) return false;
+    setCurrentUser(result.user);
     setIsAuthenticated(true);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    localStorage.setItem(AUTH_KEY, JSON.stringify(result.user));
     localStorage.setItem(AUTH_STATUS_KEY, 'true');
     return true;
+  };
+
+  const updateProfile = updates => {
+    const user = { ...currentUser, ...updates };
+    setCurrentUser(user);
+    updateUser(currentUser.id, updates);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
   };
 
   const logout = () => {
@@ -812,8 +1040,11 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       currentUser,
       isAuthenticated,
+      getUserForRole,
+      verifyCredentials,
       loginAsRole,
       loginWithCredentials,
+      updateProfile,
       logout
     }}>
       {children}

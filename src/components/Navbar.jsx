@@ -1,4 +1,3 @@
-import React from "react";
 import { Dropdown } from "react-bootstrap";
 import { FiSearch, FiBell } from "react-icons/fi";
 import "./Navbar.scss";

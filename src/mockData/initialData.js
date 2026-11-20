@@ -5,6 +5,7 @@
 
 export const ENUMS = {
   USER_ROLES: {
+    ADMIN: { code: 'ADMIN', label: 'Quản trị viên', desc: 'Toàn quyền như Quản lý bảo trì cộng thêm quyền quản trị hệ thống' },
     MANAGER: { code: 'MANAGER', label: 'Quản lý bảo trì', desc: 'Toàn quyền điều hành, phân công, duyệt chi phí & vật tư' },
     TECHNICIAN: { code: 'TECHNICIAN', label: 'Kỹ thuật viên', desc: 'Thực hiện lệnh việc, cập nhật checklist, báo sự cố' },
     STAFF: { code: 'STAFF', label: 'Nhân viên vận hành', desc: 'Vận hành máy, nhập nhật ký và báo cáo hỏng hóc' },
@@ -41,9 +42,9 @@ export const ENUMS = {
   },
 
   PRIORITIES: {
-    LOW: { code: 'LOW', label: 'Thấp', color: '#64748B', bg: '#F1F5F9' },
-    MEDIUM: { code: 'MEDIUM', label: 'Trung bình', color: '#10B981', bg: '#DCFCE7' },
-    HIGH: { code: 'HIGH', label: 'Cao', color: '#F59E0B', bg: '#FEF3C7' },
+    LOW: { code: 'LOW', label: 'Thấp', color: '#3F72AF', bg: '#DBE2EF' },
+    MEDIUM: { code: 'MEDIUM', label: 'Trung bình', color: '#B77912', bg: '#FEF3C7' },
+    HIGH: { code: 'HIGH', label: 'Cao', color: '#EF4444', bg: '#FEE2E2' },
     CRITICAL: { code: 'CRITICAL', label: 'Khẩn cấp', color: '#EF4444', bg: '#FEE2E2' }
   },
 
@@ -169,6 +170,21 @@ export const INITIAL_DATA = {
       avatar_initials: 'HN',
       created_at: '2025-03-01T08:00:00Z',
       last_login_at: '2025-06-18T09:20:00Z'
+    },
+    {
+      id: 6,
+      employee_code: 'AD-001',
+      full_name: 'Quản trị hệ thống',
+      email: 'admin@risova.vn',
+      phone: '0900 111 222',
+      role: 'ADMIN',
+      is_available: true,
+      must_change_password: false,
+      failed_login_attempts: 0,
+      is_active: true,
+      avatar_initials: 'AD',
+      created_at: '2025-01-01T08:00:00Z',
+      last_login_at: '2025-06-18T10:50:00Z'
     }
   ],
 
@@ -286,7 +302,8 @@ export const INITIAL_DATA = {
         serial_number: 'AC-VSD-99281',
         description: 'Máy nén khí biến tần cấp khí trung tâm toàn nhà máy',
         purchase_price: 680000000,
-        purchase_date: '2023-02-15'
+        purchase_date: '2023-02-15',
+        image_url: '/machine-cnc.jpg'
       }
     },
     {
@@ -310,7 +327,8 @@ export const INITIAL_DATA = {
         serial_number: 'HB-44021',
         description: 'Băng tải con lăn bọc cao su chịu tải hạt nhựa phân xưởng B',
         purchase_price: 185000000,
-        purchase_date: '2022-07-10'
+        purchase_date: '2022-07-10',
+        image_url: '/conveyor-cv01.jpg'
       }
     },
     {
@@ -430,7 +448,8 @@ export const INITIAL_DATA = {
         serial_number: 'MZ-88210',
         description: 'Gia công chi tiết khuôn mẫu chính xác cao',
         purchase_price: 2400000000,
-        purchase_date: '2023-08-01'
+        purchase_date: '2023-08-01',
+        image_url: '/machine-cnc.jpg'
       }
     },
     {

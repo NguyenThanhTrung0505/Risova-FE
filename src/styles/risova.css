@@ -1,0 +1,921 @@
+:root {
+  --risova-background: #f8f7f7;
+  --risova-surface: #dbe2ef;
+  --risova-primary: #3f72af;
+  --risova-ink: #112d4e;
+  --risova-muted: #7f96b0;
+  --risova-border: #dbe2ef;
+  --risova-sidebar-width: 260px;
+}
+
+html { scrollbar-gutter: stable; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:where(.risova-app) :is(h1, h2, h3, h4, p) { margin: 0; }
+:where(.risova-app) button { line-height: 1.4; }
+:where(.risova-app) :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--risova-primary);
+  outline-offset: 3px;
+}
+
+.risova-app {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--risova-background);
+  color: var(--risova-ink);
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.risova-skip-link { position: fixed; top: -60px; left: 16px; z-index: 100; padding: 10px 16px; border-radius: 6px; background: white; color: var(--risova-ink); }
+.risova-skip-link:focus { top: 12px; }
+.risova-navigation {
+  width: var(--risova-sidebar-width);
+  flex: 0 0 var(--risova-sidebar-width);
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--risova-ink);
+  color: var(--risova-surface);
+  z-index: 40;
+}
+.risova-navigation-brand { min-height: 88px; padding: 30px 21px 10px; display: flex; align-items: center; justify-content: space-between; }
+.risova-navigation-brand .risova-brand { gap: 15px; }
+.risova-navigation-brand .risova-brand-mark { width: 48px; height: 48px; border: 0; border-radius: 10px; background: #ffffff; box-shadow: 0 2px 10px rgba(0, 170, 252, 0.22); }
+.risova-navigation-brand .risova-brand-icon { opacity: 1; mix-blend-mode: normal; }
+.risova-navigation-brand .risova-brand > div:last-child > div:first-child { font-size: 20px; line-height: 24px; color: #ffffff; }
+.risova-navigation-brand .risova-brand > div:last-child > div:first-child span { color: #00aafc; }
+.risova-navigation-brand .risova-brand > div:last-child > div:last-child { font-size: 12px; line-height: 15px; color: #dbe2ef; margin-top: 4px; }
+.risova-brand { white-space: nowrap; }
+.risova-brand-mark { width: 42px; height: 48px; border-radius: 9px; overflow: hidden; }
+.risova-brand-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
+.risova-brand > div:last-child > div:first-child { font-size: 20px; font-weight: 600; }
+.risova-brand > div:last-child > div:last-child { font-size: 11px; line-height: 16px; }
+.risova-navigation-groups { flex: 1; overflow-y: auto; padding: 12px 11px 24px; scrollbar-width: thin; scrollbar-color: #365170 transparent; }
+.risova-navigation-group + .risova-navigation-group { margin-top: 22px; }
+.risova-navigation-label { padding: 0 10px 10px; color: #7f96b0; font-size: 14px; line-height: 17px; font-weight: 700; }
+.risova-navigation-item { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 44px; padding: 10px 12px; margin: 0; border: 0; border-radius: 10px; background: transparent; color: #dbe2ef; text-align: left; font-size: 16px; font-weight: 600; transition: background 150ms, color 150ms; }
+.risova-navigation-item svg { flex-shrink: 0; width: 22px; height: 22px; }
+.risova-navigation-item:hover { background: #ffffff0f; color: white; }
+.risova-navigation-item.is-active { background: #3f72af; color: #ffffff; }
+.risova-navigation-account { display: none; }
+.risova-account-button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 4px; color: var(--risova-surface); background: transparent; border: 0; text-align: left; }
+.risova-account-button > svg { margin-left: auto; }
+.risova-avatar { display: inline-flex; justify-content: center; align-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: #dbe2ef; color: #3f72af; font-size: 12px; font-weight: 700; }
+.risova-user-info { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.risova-user-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; color: #112d4e; }
+.risova-user-info small { color: #66788a; font-size: 10px; white-space: nowrap; }
+.risova-workspace { flex: 1; min-width: 0; }
+.risova-topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; position: sticky; top: 0; z-index: 30; min-height: 70px; padding: 12px 24px; background: white; border-bottom: 2px solid var(--risova-border); }
+.risova-breadcrumb { display: flex; flex-direction: column; flex: 1; min-width: 140px; line-height: 1.4; }
+.risova-breadcrumb > span { color: #66788a; font-size: 10px; }
+.risova-breadcrumb > strong { font-size: 12px; font-weight: 700; color: #112d4e; }
+.risova-search { display: flex; align-items: center; gap: 8px; position: relative; width: min(38%, 375px); min-height: 44px; padding: 0 15px; border: 2px solid #dbe2ef; border-radius: 10px; color: #686868; background: #fff; }
+.risova-search:focus-within { border-color: var(--risova-primary); box-shadow: 0 0 0 3px #3f72af10; }
+.risova-search > svg { flex-shrink: 0; }
+.risova-search input { width: 100%; min-width: 0; padding: 8px 0; background: transparent; border: 0; outline: none; font-size: 14px; color: var(--risova-ink); }
+.risova-search input::placeholder { color: #686868; }
+.risova-search input:focus-visible { outline: none; }
+.risova-search > button { display: flex; border: 0; padding: 0; background: transparent; color: #7f96b0; }
+.risova-search kbd { display: none; }
+.risova-topbar-actions { display: flex; justify-content: flex-end; align-items: center; gap: 24px; flex: 1; }
+.risova-icon-button { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; padding: 5px; border: 0; border-radius: 6px; color: #33363f; background: transparent; }
+.risova-icon-button:hover { background: #f0f4f9; color: var(--risova-primary); }
+.risova-notification-dot { position: absolute; right: 2px; top: 2px; min-width: 13px; height: 13px; padding: 0 3px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #ef4444; color: white; font-size: 8px; font-weight: 700; line-height: 1; }
+.risova-topbar-profile { display: flex; align-items: center; gap: 9px; padding: 0; border: 0; background: transparent; text-align: left; color: var(--risova-ink); }
+.risova-content { padding: 24px; outline: none; }
+.risova-content > .risova-page { width: 100%; max-width: 1600px; margin: 0 auto; padding-bottom: 24px; }
+.risova-page > :first-child h1 { font-size: 26px; line-height: 34px; font-weight: 700; letter-spacing: -0.6px; }
+.risova-page > :first-child p { font-size: 12px; line-height: 20px; margin-top: 3px; }
+.risova-content .rounded-xl { border-radius: 10px; }
+.risova-content .shadow-sm, .risova-content .shadow-md { box-shadow: none; }
+.risova-content .border-slate-200, .risova-content .border-slate-200\/80 { border-color: var(--risova-border); }
+.risova-content .bg-white.border { border-color: var(--risova-border); }
+.risova-content table { vertical-align: middle; }
+.risova-content table thead { background: var(--risova-surface); }
+.risova-content table thead tr { color: var(--risova-primary); background: transparent; border-bottom: 0; text-transform: none; letter-spacing: 0; font-size: 15px; font-weight: 600; }
+.risova-content table th { white-space: nowrap; font-size: 15px; font-weight: 600; padding-top: 9px; padding-bottom: 9px; }
+.risova-content table td { padding-top: 16px; padding-bottom: 16px; font-size: 13px; line-height: 19px; }
+.risova-content table tbody tr { border-color: #edf0f5; }
+.risova-content table tbody tr:hover { background: #f8fafd; }
+.risova-content :is(input, select, textarea):not([type=checkbox]):not([type=range]) { border-radius: 6px; }
+.risova-content :is(input, select, textarea):not([type=checkbox]):not([type=range]):not([type=color]) { min-height: 36px; }
+.risova-content input::placeholder, .risova-content textarea::placeholder { color: #98a2b0; }
+.risova-content :is(input, select, textarea).bg-slate-50 { background: #fff; }
+.risova-content .font-mono { font-family: inherit; }
+.risova-content .text-page-title { margin-bottom: 0; }
+.risova-content .text-card-title { font-size: 16px; line-height: 24px; }
+.risova-page > :first-child button { white-space: nowrap; border-radius: 5px; font-size: 13px; font-weight: 500; }
+.risova-page > :first-child button.bg-\[\#3F72AF\] { padding: 10px 16px; }
+.risova-content .fixed.inset-0 { padding: 24px; overflow-y: auto; background-color: #112d4e66; backdrop-filter: none; }
+.risova-content .fixed.inset-0 > .bg-white { max-height: calc(100dvh - 48px); border-radius: 8px; box-shadow: 0 16px 64px #112d4e22; }
+.risova-popover { position: absolute; background: white; color: var(--risova-ink); border: 1px solid var(--risova-border); border-radius: 8px; box-shadow: 0 8px 32px #112d4e1a; z-index: 60; overflow: hidden; }
+.risova-popover-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; padding: 14px 16px; border-bottom: 1px solid #edf0f5; }
+.risova-popover-heading strong { font-size: 13px; font-weight: 600; }
+.risova-popover-heading small { width: 100%; color: #7f8d9e; font-size: 11px; }
+.risova-popover-heading > button { padding: 0; border: 0; background: transparent; color: var(--risova-primary); font-size: 11px; }
+.risova-account-menu { width: 260px; bottom: calc(100% + 8px); left: 12px; }
+.risova-menu-item { display: flex; align-items: center; gap: 9px; width: calc(100% - 12px); margin: 2px 6px; padding: 9px 10px; border: 0; border-radius: 4px; color: var(--risova-ink); background: white; text-align: left; font-size: 12px; }
+.risova-menu-item > span + svg { margin-left: auto; }
+.risova-menu-item:hover { background: #f0f5fc; }
+.risova-menu-item.is-danger { color: #ef4444; }
+.risova-menu-caption { padding: 9px 16px 5px; color: #8b98a7; font-size: 10px; font-weight: 500; }
+.risova-menu-divider { border-top: 1px solid #edf0f5; margin: 5px 0; }
+.risova-search-results { left: 0; right: 0; top: calc(100% + 8px); min-width: 360px; max-height: min(560px, 75dvh); overflow-y: auto; }
+.risova-search-result { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 16px; border: 0; text-align: left; color: var(--risova-ink); background: white; }
+.risova-search-result:hover { background: #f4f7fc; }
+.risova-search-result > span { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.risova-search-result strong { font-size: 12px; font-weight: 500; }
+.risova-search-result small { font-size: 10px; color: #8491a1; }
+.risova-notifications { right: 0; top: calc(100% + 12px); width: 350px; max-height: 70dvh; overflow-y: auto; }
+.risova-notification-item { display: flex; gap: 10px; width: 100%; padding: 14px 16px; text-align: left; border: 0; border-bottom: 1px solid #edf0f5; background: white; }
+.risova-notification-item:hover { background: #f8fafd; }
+.risova-notification-item > span:last-child { display: flex; flex-direction: column; gap: 3px; }
+.risova-notification-item strong { color: var(--risova-ink); font-size: 12px; font-weight: 600; }
+.risova-notification-item small { color: #8491a1; font-size: 11px; }
+.risova-alert-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 30px; height: 30px; background: #fffbeb; color: #d99518; border-radius: 6px; }
+.risova-alert-icon.is-danger { color: #ef4444; background: #fff1f2; }
+.risova-count { display: inline-block; margin-left: 5px; padding: 1px 6px; background: #edf2fa; color: var(--risova-primary); border-radius: 4px; font-size: 10px; }
+.risova-empty-state { padding: 30px 16px; text-align: center; color: #7f8d9e; font-size: 12px; }
+.risova-dialog-backdrop { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: #112d4e66; z-index: 70; }
+.risova-help-dialog { width: 100%; max-width: 480px; padding: 24px; border-radius: 8px; background: white; box-shadow: 0 16px 64px #112d4e22; }
+.risova-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.risova-dialog-heading h2 { font-size: 18px; font-weight: 600; }
+.risova-native-dialog { width: calc(100% - 32px); max-height: calc(100dvh - 48px); margin: auto; padding: 0; border: 1px solid var(--risova-border); border-radius: 8px; overflow-y: auto; background: white; color: var(--risova-ink); font: 13px/1.6 Inter, "Segoe UI", sans-serif; box-shadow: 0 20px 80px #112d4e33; }
+.risova-native-dialog::backdrop { background: #112d4e66; }
+.risova-native-dialog[data-placement=workspace-left] { position: fixed; inset: 70px auto 0 var(--risova-sidebar-width); width: 360px; height: calc(100dvh - 70px); max-height: none; margin: 0; border-radius: 0; box-shadow: 8px 0 24px #112d4e10; }
+.risova-native-dialog[data-placement=workspace-left]::backdrop { background: transparent; }
+.risova-native-dialog .risova-dialog-heading { position: sticky; top: 0; z-index: 1; padding: 24px 28px 12px; margin: 0; background: white; }
+.risova-native-dialog .risova-dialog-heading h2 { margin: 0; font-size: 24px; font-weight: 700; }
+.risova-dialog-body { padding: 12px 28px 32px; }
+.risova-dialog-body label { display: block; margin-bottom: 6px; color: #64748b; font-size: 12px; }
+.risova-dialog-body :is(input,select,textarea) { width: 100%; min-height: 40px; padding: 8px 12px; border: 2px solid var(--risova-border); border-radius: 8px; outline-color: var(--risova-primary); background: white; font-size: 13px; }
+.risova-form-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 32px; margin-top: 24px; }
+.risova-form-actions button { min-width: 128px; padding: 8px 16px; border: 1px solid var(--risova-border); border-radius: 5px; font-size: 12px; font-weight: 600; }
+.risova-dialog-body > form:has(.equipment-bulk-table) .risova-form-actions { justify-content: flex-end; gap: 12px; }
+.risova-native-dialog[data-placement=workspace-left] .risova-dialog-heading { padding: 14px 20px; border-bottom: 1px solid #dbe2ef; }
+.risova-native-dialog[data-placement=workspace-left] .risova-dialog-body { padding: 20px; }
+.risova-form-actions button[type=submit], .risova-form-actions .is-primary { border-color: var(--risova-primary); background: var(--risova-primary); color: white; }
+.risova-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--risova-border); overflow-x: auto; }
+.risova-tabs button { padding: 10px 2px 12px; border-bottom: 2px solid transparent; font-size: 13px; color: #7f8d9e; white-space: nowrap; }
+.risova-tabs button[aria-selected=true] { border-color: var(--risova-primary); color: var(--risova-primary); font-weight: 600; }
+.risova-help-dialog > p { margin: 12px 0; font-size: 13px; color: #64748b; }
+.risova-mobile-toggle, .risova-mobile-close, .risova-sidebar-backdrop { display: none; }
+
+.risova-dashboard { --dashboard-gap: 20px; }
+.risova-dashboard > .grid { gap: var(--dashboard-gap); }
+.risova-dashboard > .grid > .bg-white { padding: 20px; }
+.risova-dashboard-kpis > div { min-height: 116px; }
+.risova-dashboard-kpis > div > div:first-child { gap: 10px; }
+.risova-dashboard-kpis > div > div:first-child > span:first-child { max-width: 116px; font-size: 14px !important; line-height: 19px !important; }
+.risova-dashboard-kpis > div > div:first-child > span:last-child { display: inline-flex; justify-content: center; align-items: center; max-width: 125px; min-height: 42px; padding: 6px 10px; border-radius: 3px; background: #dbe2ef; color: #3f72af; font-size: 12px; line-height: 15px; text-align: center; }
+.risova-dashboard-kpis > div:nth-child(3) > div:first-child > span:last-child { background: #f78b93; color: white; }
+.risova-dashboard .risova-dashboard-row { align-items: stretch; }
+.risova-dashboard .risova-health-card { grid-column: span 2; }
+.risova-pie-chart { display: block; width: 100%; max-width: 440px; height: 242px; margin: 8px auto 0; overflow: visible; }
+.risova-pie-chart text { font-family: inherit; }
+.risova-dashboard .risova-schedule-item { padding: 12px 0; background: white; border: 0; border-radius: 0; }
+.risova-dashboard .risova-alert-item { padding: 12px 0; background: white; border: 0; border-radius: 0; gap: 8px; }
+.risova-dashboard .risova-alert-item > div { gap: 8px; min-width: 0; }
+.risova-dashboard .risova-alert-item h4 { font-size: 12px; line-height: 18px; }
+.risova-dashboard .risova-alert-item p { font-size: 10px !important; line-height: 15px !important; }
+.risova-dashboard .risova-alert-item > span { padding: 3px 6px; font-size: 10px; border-radius: 3px; }
+.risova-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-top: 1px solid #edf0f5; background: white; color: #7a8798; font-size: 12px; }
+.risova-pagination-actions { display: flex; align-items: center; gap: 5px; }
+.risova-pagination button { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; border: 1px solid #e8ecf2; border-radius: 4px; background: white; color: #6d7e91; font-size: 12px; }
+.risova-pagination button[aria-current=page] { background: var(--risova-primary); border-color: var(--risova-primary); color: white; }
+.risova-pagination button:disabled { background: #f3f4f6; color: #b4bdc8; }
+.risova-table-toolbar { padding: 20px 20px 16px; border-bottom: 0; }
+.risova-data-table { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--risova-border); border-radius: 10px; background: white; }
+.risova-page > .risova-data-table { min-height: min(660px, calc(100dvh - 220px)); }
+.risova-data-table > .overflow-x-auto { flex: 1; padding: 0 20px; }
+.risova-status-badge { display: inline-block; min-width: 54px; padding: 3px 9px; border-radius: 12px; font-size: 10px; line-height: 15px; text-align: center; font-weight: 500; white-space: nowrap; }
+.risova-profile-card { max-width: 880px; padding: 28px; border: 1px solid var(--risova-border); border-radius: 10px; background: white; }
+.risova-profile-identity { display: flex; align-items: center; gap: 16px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid #edf0f5; }
+.risova-profile-identity .risova-avatar { width: 64px; height: 64px; font-size: 22px; }
+.risova-profile-identity h2 { font-size: 18px; font-weight: 600; }
+.risova-profile-identity p { margin-top: 4px; font-size: 12px; color: #7f8d9e; }
+.risova-profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.risova-profile-fields dt { margin-bottom: 7px; font-size: 12px; font-weight: 500; color: #7f8d9e; }
+.risova-profile-fields dd { min-height: 40px; margin: 0; padding: 10px 12px; border: 1px solid var(--risova-border); border-radius: 6px; font-size: 13px; }
+.risova-auth { position: relative; overflow: hidden; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; background: radial-gradient(circle at 18% 12%, #3a5477 0%, #2b3f5a 46%, #1f2d42 100%); font-family: Inter, "Segoe UI", sans-serif; }
+.risova-auth-backdrop { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.risova-auth-blueprint-grid { position: absolute; inset: 0; opacity: 0.24; background-image: radial-gradient(circle, rgba(164, 203, 240, 0.55) 1.5px, transparent 1.7px), linear-gradient(to right, rgba(158, 197, 232, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(158, 197, 232, 0.08) 1px, transparent 1px); background-size: 36px 36px, 72px 72px, 72px 72px; }
+.risova-auth-blueprint-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.risova-auth-gear { position: absolute !important; pointer-events: none; }
+.risova-auth-gear--left-upper { left: 0; top: 36%; width: clamp(240px, 31vw, 440px); aspect-ratio: 1 / 1; }
+.risova-auth-gear--right-upper { right: 0; top: 36%; width: clamp(240px, 31vw, 440px); aspect-ratio: 1 / 1; }
+.risova-auth-gear--left-bottom { left: 0; bottom: -2%; width: clamp(260px, 38vw, 540px); aspect-ratio: 580 / 520; }
+.risova-auth-gear--right-bottom { right: 0; bottom: -2%; width: clamp(260px, 38vw, 540px); aspect-ratio: 580 / 520; }
+.risova-auth-content { position: relative; z-index: 1; width: 100%; max-width: 464px; }
+.risova-recovery-card { position: relative; z-index: 1; width: 100%; max-width: 464px; padding: 24px 14px 48px; border-radius: 20px; background: white; color: #111; box-shadow: 0 8px 28px #112d4e20; }
+.risova-auth-logo { display: flex; justify-content: center; margin-bottom: 24px; }
+.risova-auth-logo .risova-brand { position: relative; justify-content: center; width: 82px; height: 82px; border-radius: 17px; background: white; }
+.risova-auth-logo .risova-brand-mark { border: 0; height: 82px; width: 82px; border-radius: 17px; }
+.risova-auth-card { padding: 64px 44px 68px; border: 1px solid #dbe2ef; border-radius: 20px; background: white; box-shadow: 0 12px 40px #112d4e14; }
+.risova-auth-card h1 { margin: 0 0 8px; font-size: 22px; line-height: 30px; font-weight: 700; text-align: center; color: #112d4e; }
+.risova-auth-card > p { margin: 0 0 38px; font-size: 13px; line-height: 20px; text-align: center; color: #7a8797; }
+.risova-auth-field + .risova-auth-field { margin-top: 16px; }
+.risova-auth-field label { display: block; margin-bottom: 7px; font-size: 13px; color: #112d4e; font-weight: 500; }
+.risova-auth-field input { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid #dbe2ef; border-radius: 5px; background: white; color: #112d4e; font-size: 13px; outline-color: #3f72af; }
+.risova-auth-field input::placeholder { color: #9aa4b1; }
+.risova-password-input { position: relative; }
+.risova-password-input input { padding-right: 42px; }
+.risova-password-input button { position: absolute; top: 0; right: 0; height: 42px; width: 42px; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #8a97a7; }
+.risova-forgot-password { margin: 12px 0 20px; text-align: right; }
+.risova-forgot-password a { font-size: 12px; color: #7a8797; text-decoration: none; }
+.risova-forgot-password a:hover { color: #3f72af; text-decoration: underline; }
+.risova-auth-submit { width: 100%; min-height: 40px; border: 0; border-radius: 4px; background: #3f72af; color: white; font-size: 13px; font-weight: 500; }
+.risova-auth-submit:hover { background: #325d91; }
+.risova-demo-access { margin-top: 18px; color: #dbe2ef; text-align: center; font-size: 11px; }
+.risova-demo-access summary { cursor: pointer; }
+.risova-demo-access > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.risova-demo-access button { padding: 8px; border: 1px solid #ffffff30; border-radius: 4px; background: #112d4e80; color: #dbe2ef; font-size: 11px; }
+.risova-demo-access button:hover { background: #3f72af; }
+.risova-auth-footer { margin-top: 18px; color: #a4b4c8; text-align: center; font-size: 10px; }
+.risova-auth-replay-btn { padding: 0; border: 0; background: transparent; color: #b7d3ee; font-size: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.risova-auth-replay-btn:hover { color: #ffffff; }
+.risova-recovery-back { display: inline-flex; align-items: center; gap: 6px; color: #666; text-decoration: none; font-size: 14px; }
+.risova-recovery-content { padding: 30px 30px 0; }
+.risova-recovery-content h1 { font-size: 26px; font-weight: 700; line-height: 1.35; margin: 0 0 8px; color: #111; }
+.risova-recovery-content > p { margin: 0 0 22px; font-size: 14px; line-height: 1.5; color: #666; }
+.risova-recovery-content .risova-auth-field label { color: #111; font-size: 13px; font-weight: 400; }
+.risova-recovery-content .risova-auth-field input { border: 2px solid #ddd; border-radius: 10px; background: #fafafa; min-height: 50px; font-size: 13px; }
+.risova-recovery-content .risova-password-input button { height: 50px; }
+.risova-recovery-content .risova-auth-submit { margin-top: 14px; min-height: 50px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+.risova-recovery-content .risova-auth-field + .risova-auth-field { margin-top: 16px; }
+.risova-otp-inputs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin: 22px 0 0; }
+.risova-otp-inputs input { min-width: 0; width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 10px; background: #fafafa; text-align: center; font-size: 24px; outline-color: #3f72af; }
+.risova-recovery-resend { width: 100%; margin-top: 14px; min-height: 50px; border: 2px solid #ddd; border-radius: 10px; background: #f7f7f7; color: #666; font-size: 14px; font-weight: 600; }
+.risova-recovery-other { display: block; margin: 14px 0 -24px; color: #3f72af; font-size: 13px; text-align: center; text-decoration: none; }
+.risova-auth-message { margin: 10px 0 0; font-size: 12px; color: #b83e43; }
+@media (max-width: 480px) { .risova-recovery-content { padding: 26px 16px 0; } .risova-otp-inputs { gap: 8px; } .risova-otp-inputs input { height: 50px; } }
+.wo-back { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; color: #748399; font-size: 12px; }
+.wo-detail-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+.wo-detail-heading h1 { color: #112d4e; font-size: 24px; line-height: 1.4; font-weight: 700; margin: 0 0 6px; }
+.wo-heading-icon,.wo-person-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: 6px; background: #dbe2ef; color: #3f72af; }
+.wo-badges { display: flex; gap: 10px; }
+.wo-heading-actions { display: flex; gap: 16px; margin-left: auto; }
+.wo-heading-actions button { display: inline-flex; justify-content: center; align-items: center; gap: 12px; min-width: 120px; padding: 8px 16px; border: 1px solid #dbe2ef; border-radius: 5px; background: white; color: #112d4e; font-size: 12px; font-weight: 600; }
+.wo-heading-actions .is-danger { border-color: #f4878e; background: #f4878e; color: #c9363c; }
+.wo-progress { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; border-bottom: 1px solid #dbe2ef; }
+.wo-progress .risova-tabs { flex: 1; gap: 28px; border: 0; }
+.wo-progress .risova-tabs button { font-size: 12px; }
+.wo-primary { padding: 8px 18px; border-radius: 4px; background: #3f72af; color: white; font-size: 12px; }
+.wo-primary:disabled { opacity: .55; }
+.wo-detail-grid { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(250px, 1fr); gap: 16px; }
+.wo-card { min-width: 0; padding: 22px 26px; border: 1px solid #dbe2ef; border-radius: 9px; background: white; }
+.wo-card h2 { margin: 0 0 18px; font-size: 16px; font-weight: 600; color: #111; }
+.wo-asset-info { display: grid; grid-template-columns: minmax(150px, .95fr) minmax(0, 1.95fr); gap: 28px; }
+.wo-asset-image { width: 100%; height: 306px; object-fit: cover; border-radius: 5px; }
+.wo-fields { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px 20px; margin: 0; }
+.wo-field { min-width: 0; }
+.wo-field dt { margin-bottom: 4px; color: #708399; font-size: 12px; text-transform: uppercase; font-weight: 400; }
+.wo-field dd { margin: 0; color: #112d4e; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.wo-field dd > span { display: block; }
+.wo-field-wide { grid-column: 1 / -1; }
+.wo-link { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px; color: #00a4ef; font-size: 12px; font-weight: 400; text-decoration: none; }
+.wo-people { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+.wo-people > div { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.wo-people dl { margin: 0; }
+.wo-people .wo-person-icon { width: 42px; height: 42px; }
+.wo-people .wo-field dt { font-size: 11px; }
+.wo-people .wo-field dd { font-size: 12px; }
+.wo-checklist > p { margin: -14px 0 18px; color: #708399; font-size: 13px; }
+.wo-task-list { display: grid; gap: 10px; }
+.wo-task-list button { padding: 12px 10px; border: 1px solid #708399; border-radius: 8px; text-align: left; color: #708399; font-size: 12px; }
+.wo-task-list button.is-completed { border-color: #0abc88; background: #c4f2e5; color: #00af84; }
+.wo-task-list button:hover { border-color: #3f72af; background: #3f72af; color: white; }
+.wo-analysis-fields { display: grid; grid-template-columns: 1.5fr .8fr .8fr; gap: 18px 24px; margin: 0; }
+.wo-timeline { display: grid; gap: 20px; margin: 0; }
+.wo-task-title { display: flex; align-items: center; gap: 14px; margin: 0 0 28px; font-size: 14px; font-weight: 600; }
+.wo-task-title .wo-person-icon { width: 40px; height: 40px; }
+.wo-task-image { max-height: 200px; width: 100%; object-fit: contain; }
+.wo-image-placeholder { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 120px; font-weight: 400; color: #708399; }
+.wo-completion { width: 100%; padding: 15px; margin-top: 22px; border-radius: 7px; background: #3f72af; color: white; font-size: 12px; font-weight: 600; }
+.wo-completion.is-completed { background: #c4f2e5; color: #00af84; }
+.wo-parts { grid-column: 1 / -1; }
+.wo-parts th,.wo-parts td { padding: 12px 10px; font-size: 12px; border-bottom: 1px solid #edf0f5; }
+.wo-parts small { display: block; color: #708399; margin-top: 4px; }
+.schedule-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.schedule-config-grid .wo-field { display: flex; justify-content: space-between; gap: 18px; }
+.schedule-config-grid .wo-field dd { text-align: right; }
+@media (max-width: 767px) { .schedule-config-grid { grid-template-columns: 1fr; } .risova-auth-card { padding: 36px 24px; } }
+@media (max-width: 1150px) { .wo-detail-grid { grid-template-columns: minmax(0, 1fr) 250px; } .wo-asset-info { grid-template-columns: 130px minmax(0, 1fr); gap: 16px; } .wo-card { padding: 20px; } .wo-people { grid-template-columns: 1fr; } .wo-detail-heading { flex-wrap: wrap; } .wo-heading-actions { margin-left: 0; } }
+@media (max-width: 767px) { .risova-native-dialog[data-placement=workspace-left] { inset: 0 auto 0 0; width: min(360px, 100vw); height: 100dvh; } .wo-detail-grid { grid-template-columns: 1fr; } .wo-detail-heading { gap: 12px; margin-bottom: 20px; } .wo-detail-heading h1 { font-size: 20px; } .wo-heading-icon { display: none; } .wo-asset-info { grid-template-columns: 1fr; } .wo-asset-image { height: 220px; } .wo-analysis-fields { grid-template-columns: 1fr; } .wo-progress { flex-wrap: wrap; padding-bottom: 10px; } .wo-progress .risova-tabs { flex-basis: 100%; } }
+
+@media (min-width: 1600px) { .risova-content { padding: 28px 32px; } }
+@media (max-width: 1250px) {
+  :root { --risova-sidebar-width: 208px; }
+  .risova-topbar { gap: 16px; }
+  .risova-topbar-actions { gap: 10px; }
+  .risova-search { width: 36%; }
+  .risova-search kbd { display: none; }
+  .risova-dashboard-kpis > div { padding: 15px !important; }
+  .risova-dashboard-kpis > div > div:first-child { flex-wrap: wrap; }
+  .risova-dashboard-kpis > div > div:first-child > span:last-child { min-height: 30px; }
+}
+@media (max-width: 1023px) {
+  :root { --risova-sidebar-width: 208px; }
+  .risova-navigation-brand { padding-left: 20px; }
+  .risova-navigation-item { gap: 9px; font-size: 13px; }
+  .risova-content { padding: 20px; }
+  .risova-topbar { padding-left: 20px; padding-right: 20px; }
+  .risova-topbar-profile .risova-user-info { display: none; }
+  .risova-search { width: 42%; }
+  .risova-dashboard .risova-health-card { grid-column: auto; }
+  .risova-dashboard-kpis > div > div:first-child { flex-wrap: nowrap; }
+}
+@media (max-width: 767px) {
+  .risova-navigation { position: fixed; left: 0; top: 0; width: 260px; transform: translateX(-100%); transition: transform 180ms ease; }
+  .risova-navigation.is-open { transform: translateX(0); }
+  .risova-mobile-toggle, .risova-mobile-close { display: inline-flex; }
+  .risova-mobile-close { color: #dbe2ef; }
+  .risova-sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 35; border: 0; background: #112d4e66; }
+  .risova-topbar { min-height: 64px; padding: 10px 16px; gap: 10px; flex-wrap: wrap; }
+  .risova-breadcrumb { min-width: 0; }
+  .risova-breadcrumb > strong { font-size: 12px; }
+  .risova-topbar-actions { flex: 0 0 auto; gap: 5px; }
+  .risova-search { order: 5; width: 100%; }
+  .risova-search-results { min-width: 0; }
+  .risova-qr-button { display: none; }
+  .risova-notifications { position: fixed; top: 64px; right: 12px; width: min(350px, calc(100vw - 24px)); }
+  .risova-content { padding: 20px 16px; }
+  .risova-dialog-body { padding: 12px 20px 24px; }
+  .risova-native-dialog .risova-dialog-heading { padding: 20px 20px 12px; }
+  .risova-form-actions { gap: 12px; }
+  .risova-form-actions button { min-width: 100px; }
+  .risova-page > :first-child h1 { font-size: 22px !important; line-height: 30px !important; }
+  .risova-page > :first-child p { max-width: 44ch; }
+  .risova-content .fixed.inset-0 { padding: 12px; }
+  .risova-content .fixed.inset-0 > .bg-white { max-height: calc(100dvh - 24px); }
+  .risova-dashboard > .grid { gap: 16px; }
+  .risova-pagination { padding: 12px; }
+  .risova-profile-card { padding: 20px; }
+  .risova-profile-fields { grid-template-columns: 1fr; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .risova-app *, .risova-app *::before, .risova-app *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+
+/* Smooth Light <-> Dark theme transitions */
+.risova-app,
+.risova-topbar,
+.risova-navigation,
+.risova-data-table,
+.wo-card,
+.risova-profile-card,
+.risova-popover {
+  transition: background-color 260ms ease, color 220ms ease, border-color 260ms ease;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dark Theme (Lightbulb OFF)                                                 */
+/* -------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  --risova-background: #0b1220;
+  --risova-surface: #182538;
+  --risova-primary: #4f86c6;
+  --risova-ink: #e2e8f0;
+  --risova-muted: #94a3b8;
+  --risova-border: #22324c;
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
+/* Sidebar stays deep technical navy in dark mode */
+html[data-theme="dark"] .risova-navigation {
+  background: #0b1d36;
+  color: #dbe2ef;
+  border-right: 1px solid #1e3250;
+}
+
+html[data-theme="dark"] .risova-navigation-brand .risova-brand > div:last-child > div:first-child {
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .risova-navigation-label {
+  color: #7f96b0;
+}
+
+html[data-theme="dark"] .risova-navigation-item {
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .risova-navigation-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .risova-navigation-item.is-active {
+  background: #3f72af;
+  color: #ffffff;
+}
+
+/* Topbar & Search */
+html[data-theme="dark"] .risova-topbar {
+  background: #0f1a2d;
+  border-bottom-color: #22324c;
+}
+
+html[data-theme="dark"] .risova-breadcrumb > span {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-breadcrumb > strong {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-search {
+  background: #142238;
+  border-color: #263a57;
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-search:focus-within {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+}
+
+html[data-theme="dark"] .risova-search input {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-search input::placeholder {
+  color: #64748b;
+}
+
+html[data-theme="dark"] .risova-icon-button {
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .risova-icon-button:hover {
+  background: #1b2d48;
+  color: #60a5fa;
+}
+
+html[data-theme="dark"] .risova-topbar-profile {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-avatar {
+  background: #1e3354;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .risova-user-info strong {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-user-info small {
+  color: #94a3b8;
+}
+
+/* Cards, Tables, Pagination, Popovers & Tabs */
+html[data-theme="dark"] .risova-data-table,
+html[data-theme="dark"] .risova-profile-card,
+html[data-theme="dark"] .wo-card,
+html[data-theme="dark"] .equipment-card,
+html[data-theme="dark"] .equipment-form,
+html[data-theme="dark"] .location-node,
+html[data-theme="dark"] .location-drawer,
+html[data-theme="dark"] .risova-personal-form {
+  background: #111b2e;
+  border-color: #22324c;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .risova-content table thead {
+  background: #182538;
+}
+
+html[data-theme="dark"] .risova-content table thead tr {
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .risova-content table tbody tr {
+  border-color: #1f2f48;
+}
+
+html[data-theme="dark"] .risova-content table tbody tr:hover {
+  background: #17243b;
+}
+
+html[data-theme="dark"] .risova-pagination {
+  background: #111b2e;
+  border-top-color: #22324c;
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-pagination button {
+  background: #162238;
+  border-color: #263a57;
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .risova-pagination button[aria-current="page"] {
+  background: #3f72af;
+  border-color: #3f72af;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .risova-pagination button:disabled {
+  background: #0e1728;
+  color: #475569;
+}
+
+html[data-theme="dark"] .risova-popover,
+html[data-theme="dark"] .location-node-menu-items {
+  background: #132036;
+  border-color: #263a57;
+  color: #e2e8f0;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="dark"] .risova-popover-heading {
+  border-bottom-color: #22324c;
+}
+
+html[data-theme="dark"] .risova-popover-heading small,
+html[data-theme="dark"] .risova-menu-caption,
+html[data-theme="dark"] .risova-empty-state,
+html[data-theme="dark"] .risova-search-result small,
+html[data-theme="dark"] .risova-notification-item small {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-menu-item,
+html[data-theme="dark"] .risova-search-result,
+html[data-theme="dark"] .risova-notification-item,
+html[data-theme="dark"] .location-node-menu-items button {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .risova-menu-item:hover,
+html[data-theme="dark"] .risova-search-result:hover,
+html[data-theme="dark"] .risova-notification-item:hover,
+html[data-theme="dark"] .location-node-menu-items button:hover {
+  background: #1b2d48;
+}
+
+html[data-theme="dark"] .risova-menu-item.is-danger {
+  color: #f87171;
+}
+
+html[data-theme="dark"] .risova-menu-divider,
+html[data-theme="dark"] .risova-notification-item,
+html[data-theme="dark"] .risova-profile-identity,
+html[data-theme="dark"] .wo-progress,
+html[data-theme="dark"] .wo-parts th,
+html[data-theme="dark"] .wo-parts td,
+html[data-theme="dark"] .location-drawer-head {
+  border-color: #22324c;
+}
+
+html[data-theme="dark"] .risova-count {
+  background: #1e3354;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .risova-alert-icon {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+}
+
+html[data-theme="dark"] .risova-alert-icon.is-danger {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+html[data-theme="dark"] .risova-tabs {
+  border-bottom-color: #22324c;
+}
+
+html[data-theme="dark"] .risova-tabs button {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-tabs button[aria-selected="true"] {
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+/* Dashboard KPIs, Charts & Widgets */
+html[data-theme="dark"] .risova-dashboard-kpis > div > div:first-child > span:last-child {
+  background: #1d314f;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .risova-dashboard-kpis > div:nth-child(3) > div:first-child > span:last-child {
+  background: rgba(239, 68, 68, 0.24);
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .risova-dashboard .risova-schedule-item,
+html[data-theme="dark"] .risova-dashboard .risova-alert-item {
+  background: #111b2e;
+}
+
+html[data-theme="dark"] .risova-dashboard .risova-health-card .bg-\[\#112D4E\] {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .recharts-cartesian-grid line {
+  stroke: #22324c;
+}
+
+html[data-theme="dark"] .recharts-default-tooltip {
+  background-color: #132036 !important;
+  border-color: #263a57 !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] .recharts-tooltip-item,
+html[data-theme="dark"] .recharts-legend-item-text {
+  color: #cbd5e1 !important;
+}
+
+/* Form Controls & Native Dialogs */
+html[data-theme="dark"] .risova-content :is(input, select, textarea):not([type="checkbox"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] .risova-native-dialog :is(input, select, textarea):not([type="checkbox"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] .operations-dialog :is(input, select, textarea):not([type="checkbox"]):not([type="range"]):not([type="color"]) {
+  background: #0f192b;
+  border-color: #293d5c;
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-content :is(input, select, textarea).bg-slate-50 {
+  background: #0f192b !important;
+}
+
+html[data-theme="dark"] .risova-content :is(input, textarea)::placeholder,
+html[data-theme="dark"] .risova-native-dialog :is(input, textarea)::placeholder,
+html[data-theme="dark"] .operations-dialog :is(input, textarea)::placeholder {
+  color: #64748b;
+}
+
+html[data-theme="dark"] .risova-content select option,
+html[data-theme="dark"] .risova-native-dialog select option,
+html[data-theme="dark"] .operations-dialog select option {
+  background: #111b2e;
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-help-dialog,
+html[data-theme="dark"] .risova-native-dialog,
+html[data-theme="dark"] .risova-native-dialog .risova-dialog-heading,
+html[data-theme="dark"] .operations-dialog {
+  background: #111b2e;
+  border-color: #263a57;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .risova-help-dialog > p,
+html[data-theme="dark"] .risova-dialog-body label,
+html[data-theme="dark"] .risova-profile-fields dt,
+html[data-theme="dark"] .wo-back,
+html[data-theme="dark"] .wo-field dt,
+html[data-theme="dark"] .wo-checklist > p,
+html[data-theme="dark"] .wo-image-placeholder,
+html[data-theme="dark"] .wo-parts small {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-dialog-heading h2,
+html[data-theme="dark"] .operations-dialog-heading h2,
+html[data-theme="dark"] .wo-detail-heading h1,
+html[data-theme="dark"] .wo-card h2,
+html[data-theme="dark"] .wo-field dd,
+html[data-theme="dark"] .equipment-card > h2,
+html[data-theme="dark"] .equipment-card-heading h2,
+html[data-theme="dark"] .location-node-label strong {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-profile-fields dd {
+  border-color: #263a57;
+  background: #0f192b;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .risova-form-actions button,
+html[data-theme="dark"] .operations-dialog-actions button,
+html[data-theme="dark"] .wo-heading-actions button,
+html[data-theme="dark"] .equipment-button {
+  background: #162238;
+  border-color: #293d5c;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .equipment-button:hover,
+html[data-theme="dark"] .wo-heading-actions button:hover {
+  background: #1f314d;
+}
+
+html[data-theme="dark"] .risova-form-actions button[type="submit"],
+html[data-theme="dark"] .risova-form-actions .is-primary,
+html[data-theme="dark"] .operations-dialog-actions button[type="submit"],
+html[data-theme="dark"] .operations-dialog-actions button.is-primary,
+html[data-theme="dark"] .equipment-button.equipment-button-primary {
+  background: #3f72af;
+  border-color: #3f72af;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .wo-heading-actions .is-danger,
+html[data-theme="dark"] .equipment-button.equipment-button-danger {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+/* Equipment, Locations, WorkOrders, Inventory & Personnel Specific Blocks */
+html[data-theme="dark"] .equipment-title-icon,
+html[data-theme="dark"] .equipment-list-icon,
+html[data-theme="dark"] .wo-heading-icon,
+html[data-theme="dark"] .wo-person-icon {
+  background: #1d314f;
+  color: #60a5fa;
+}
+
+html[data-theme="dark"] .equipment-health-ring {
+  border-color: #263a57;
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .equipment-health > span:first-child {
+  background: #22324c;
+}
+
+html[data-theme="dark"] .equipment-asset-placeholder,
+html[data-theme="dark"] .equipment-qr,
+html[data-theme="dark"] .operations-stock-cards > div {
+  background: #162238;
+}
+
+html[data-theme="dark"] .equipment-qr-sheet {
+  background: #ffffff;
+  border-radius: 6px;
+}
+
+html[data-theme="dark"] .equipment-bulk-table thead,
+html[data-theme="dark"] .operations-bulk-table th {
+  background: #182538;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .equipment-card table tbody tr,
+html[data-theme="dark"] .equipment-bulk-table td,
+html[data-theme="dark"] .operations-bulk-table tbody tr {
+  border-color: #22324c;
+}
+
+html[data-theme="dark"] .operations-bulk-table tbody tr[data-editing="true"] {
+  background: #18263d;
+}
+
+html[data-theme="dark"] .operations-stock-cards dd {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .operations-stock-cards dt,
+html[data-theme="dark"] .operations-stock-cards small {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .location-tree li > ul {
+  border-left-color: #2c4163;
+}
+
+html[data-theme="dark"] .location-node-count {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .wo-task-list button {
+  background: #162238;
+  border-color: #293d5c;
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .wo-task-list button.is-completed {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .risova-personal-summary {
+  background: #142847;
+  border: 1px solid #263f63;
+  color: #f8fafc;
+}
+
+html[data-theme="dark"] .risova-personnel-row-action:hover {
+  background-color: #1d314f;
+}
+
+/* Tailwind Utility Overrides for Dark Mode Pages, Dialogs & Modals */
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .bg-white {
+  background-color: #111b2e !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-slate-50, .bg-slate-50\/50, .bg-slate-50\/70, .bg-slate-50\/80, .bg-gray-50) {
+  background-color: #162238 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-slate-100, .bg-gray-100) {
+  background-color: #1c2b45 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-slate-200, .bg-\[\#cdd7ea\]) {
+  background-color: #243654 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .bg-\[\#DBE2EF\] {
+  background-color: #1d314f !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.text-\[\#112D4E\], .text-\[\#112d4e\], .text-slate-800, .text-slate-900) {
+  color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.text-slate-700, .text-slate-600) {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.text-slate-500, .text-\[\#64748B\], .text-\[\#66788a\]) {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .text-slate-400 {
+  color: #7c90aa !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .text-\[\#3F72AF\] {
+  color: #60a5fa !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.border-slate-100, .border-slate-100\/80, .border-slate-200, .border-slate-200\/80, .border-slate-300, .border-\[\#DBE2EF\]) {
+  border-color: #22324c !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .hover\:bg-slate-50:hover,
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .hover\:bg-slate-100:hover,
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .hover\:bg-slate-200:hover,
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .hover\:bg-blue-50:hover {
+  background-color: #1f314d !important;
+}
+
+/* Preserve primary buttons & tune pastel badges for dark contrast */
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog) .bg-\[\#3F72AF\] {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-emerald-50, .bg-emerald-100) {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-amber-50, .bg-amber-100) {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-red-50, .bg-red-100) {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) :is(.bg-blue-50, .bg-blue-100) {
+  background-color: rgba(59, 130, 246, 0.16) !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .text-emerald-700 {
+  color: #6ee7b7 !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .text-amber-700 {
+  color: #fcd34d !important;
+}
+
+html[data-theme="dark"] :is(.risova-workspace, .risova-native-dialog, .operations-dialog, .risova-app) .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+/* Keep top-left Risova brand logo bright in dark mode */
+html[data-theme="dark"] .risova-navigation .risova-navigation-brand .risova-brand-mark {
+  background-color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(0, 170, 252, 0.32);
+}
+
+html[data-theme="dark"] .risova-navigation .risova-navigation-brand .risova-brand-icon {
+  opacity: 1;
+  mix-blend-mode: normal;
+}

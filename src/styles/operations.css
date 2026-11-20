@@ -1,0 +1,163 @@
+.operations-dialog {
+  inset: 14vh 0 auto;
+  width: calc(100% - 32px);
+  max-height: calc(86dvh - 16px);
+  margin: 0 auto;
+  padding: 20px 20px 32px;
+  border: 1px solid #dbe2ef;
+  border-radius: 11px;
+  background: #fff;
+  color: #112d4e;
+  font: 14px/1.5 Inter, "Segoe UI", sans-serif;
+}
+
+.operations-dialog--middle {
+  inset-block-start: 24vh;
+  max-height: calc(76dvh - 16px);
+  padding: 24px 40px 44px;
+}
+
+.operations-dialog--wide {
+  inset-block-start: 21vh;
+  max-height: calc(79dvh - 16px);
+}
+
+.operations-dialog::backdrop { background: #112d4e66; }
+
+.operations-dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.operations-dialog-heading h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.operations-dialog label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+
+.operations-dialog :is(input, select, textarea) {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 2px solid #dbe2ef;
+  border-radius: 9px;
+  color: #112d4e;
+  font-size: 14px;
+}
+
+.operations-dialog :is(input, select, textarea):focus { outline: 1px solid #3f72af; }
+.operations-dialog :is(input, textarea)::placeholder { color: #64748b; }
+
+.operations-dialog-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+  margin-top: 20px;
+}
+
+.operations-dialog-actions button {
+  min-width: 128px;
+  padding: 8px 16px;
+  border: 1px solid #dbe2ef;
+  border-radius: 6px;
+  background: #fff;
+  color: #112d4e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.operations-dialog-actions button[type=submit],
+.operations-dialog-actions button.is-primary {
+  border-color: #3f72af;
+  background: #3f72af;
+  color: white;
+}
+
+.operations-dialog-actions button.is-danger { border-color: #ef4444; background: #ef4444; color: white; }
+.operations-dialog-actions button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.operations-detail-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin: 6px 0 0;
+}
+
+.operations-detail-heading a { text-decoration: none; }
+.operations-detail-heading a:hover { text-decoration: underline; }
+
+.operations-detail-heading .operations-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+}
+
+.operations-stock-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.operations-stock-cards > div {
+  display: grid;
+  align-content: center;
+  min-height: 110px;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #dbe2ef;
+  text-align: center;
+}
+
+.operations-stock-cards dt,
+.operations-stock-cards small { color: #586f87; font-size: 15px; font-weight: 400; }
+.operations-stock-cards dd { color: #112d4e; font-size: 24px; font-weight: 700; }
+.operations-stock-cards small { min-height: 20px; }
+
+.operations-transaction-table { min-height: 470px; }
+.operations-transaction-table.is-page,
+.operations-parts-table { min-height: min(744px, calc(100dvh - 220px)); }
+.operations-table-heading { padding: 16px 20px 0; }
+.operations-table-heading h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.operations-table-heading + .risova-table-toolbar { padding-top: 12px; }
+
+.operations-bulk-table { width: 100%; min-width: 880px; font-size: 13px; }
+.operations-bulk-table th { background: #dbe2ef; color: #3f72af; text-align: left; font-size: 15px; font-weight: 600; }
+.operations-bulk-table :is(th, td) { padding: 8px 8px; }
+.operations-bulk-table tbody tr { border-bottom: 1px solid #dbe2ef; }
+.operations-bulk-table tbody tr[data-editing=true] { background: #f2f6fb; }
+.operations-bulk-table input { min-height: 34px; padding: 6px; border-width: 1px; border-radius: 5px; font-size: 13px; }
+.operations-bulk-table button { padding: 4px; border: 1px solid transparent; border-radius: 4px; }
+.operations-bulk-table button:hover { border-color: #dbe2ef; background: #fff; }
+.operations-bulk-table input[type=number] { appearance: textfield; }
+.operations-bulk-table input::-webkit-inner-spin-button { appearance: none; }
+
+@media (max-width: 860px) {
+  .operations-stock-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 540px) {
+  .operations-dialog, .operations-dialog--middle, .operations-dialog--wide {
+    inset-block-start: 16px;
+    max-height: calc(100dvh - 32px);
+    padding: 20px 16px;
+  }
+  .operations-dialog-heading h2 { font-size: 20px; }
+  .operations-dialog-actions { gap: 12px; }
+  .operations-dialog-actions button { min-width: 104px; }
+  .operations-stock-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

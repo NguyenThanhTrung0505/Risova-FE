@@ -1,15 +1,8 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import "../styles/auth/Auth.scss";
 
-const AuthLayout = () => {
-    return (
-        <div className="auth-page-container">
-            <div className="auth-content-wrapper">
-                <Outlet />
-            </div>
-        </div>
-    );
+const AuthLayout = ({ children }) => {
+    return children || <Outlet />;
 };
 
 export default AuthLayout;
