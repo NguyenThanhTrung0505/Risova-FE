@@ -57,6 +57,7 @@ $font-family-sans-serif:
 $font-family-base: $font-family-sans-serif;
 
 // --- Bootstrap Overrides ---
+$enable-important-utilities: false;
 $body-bg: $bg;
 $body-color: $text-primary;
 $theme-colors: (

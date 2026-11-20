@@ -1,262 +1,244 @@
-import React, { useState } from 'react';
-import { useAuth, useData } from '../context/DataContext';
-import {
-  CalendarClock,
-  Plus,
-  Clock,
-  Calendar,
-  Gauge,
-  CheckCircle,
-  AlertCircle,
-  Wrench,
-  ArrowRight,
-  X
-} from 'lucide-react';
+import { usePagination } from '../hooks/usePagination';
+import ScheduleDetails from '../components/ScheduleDetails';
+import { useState } from 'react';
+import { Plus, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import Pagination from '../components/Pagination';
+import ScheduleForm from '../components/ScheduleForm';
+import { scheduleTypeLabels } from '../constants/schedules';
+import { useData } from '../context/DataContext';
 
-export default function SchedulesPage({ onGenerateWoFromSchedule }) {
-  const { data, ENUMS, createMaintenanceSchedule } = useData();
+const primaryButton = 'inline-flex items-center justify-center gap-2 rounded border border-[#3F72AF] bg-[#3F72AF] px-4 py-2 text-sm font-medium text-white hover:bg-[#325d91]';
+
+const control = 'rounded border border-slate-200 bg-white px-3 py-2 text-[13px] text-[#112D4E]';
+
+function dateLabel(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+function amountLabel(value, unit) {
+  if (value == null) return '—';
+  return Number(value).toLocaleString('vi-VN') + ' ' + unit;
+}
+
+function meterUnit(asset) {
+  if (asset?.meter_unit === 'CYCLES') return 'chu kỳ';
+  if (asset?.meter_unit === 'KILOMETERS' || asset?.meter_unit === 'KM') return 'km';
+  return 'giờ';
+}
+
+function cycleLabel(schedule, asset) {
+  const cycles = [];
+  if (schedule.schedule_type !== 'METER_BASED' && schedule.frequency_days != null) {
+    cycles.push(amountLabel(schedule.frequency_days, 'ngày'));
+  }
+  if (schedule.schedule_type !== 'TIME_BASED' && schedule.meter_interval != null) {
+    cycles.push(amountLabel(schedule.meter_interval, meterUnit(asset)));
+  }
+  return cycles.join(' / ') || '—';
+}
+
+function ScheduleState({ schedule }) {
+  return (
+    <span className={'risova-status-badge ' + (schedule.is_active === false ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700')}>
+      {schedule.is_active === false ? 'Tạm dừng' : 'Đang hoạt động'}
+    </span>
+  );
+}
+
+function ScheduleOrders({ orders, statuses, priorities, woTypes, users, onSelectOrder, onGenerate, schedule }) {
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [assigneeFilter, setAssigneeFilter] = useState('ALL');
+  const query = search.trim().toLowerCase();
+  const filtered = orders.filter(order => {
+    const matchesSearch = [order.wo_code, order.title].join(' ').toLowerCase().includes(query);
+    return matchesSearch
+      && (statusFilter === 'ALL' || order.status === statusFilter)
+      && (priorityFilter === 'ALL' || order.priority === priorityFilter)
+      && (assigneeFilter === 'ALL' || String(order.assigned_to) === assigneeFilter);
+  });
+  const pagination = usePagination(filtered, [schedule.id, query, statusFilter, priorityFilter, assigneeFilter].join('|'));
+  return (
+    <section className="risova-data-table">
+      <div className="risova-table-toolbar space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-[#112D4E]">Lịch sử bảo trì ({orders.length})</h2>
+          {onGenerate && (
+            <button type="button" onClick={() => onGenerate(schedule)} className={primaryButton}>
+              <Plus size={16} /> Tạo lệnh việc
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <div className="relative min-w-48 flex-1">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input aria-label="Tìm lịch sử bảo trì" placeholder="Tìm theo tên, mã,..." value={search} onChange={event => setSearch(event.target.value)} className={control + ' w-full pl-9'} />
+          </div>
+          <select aria-label="Trạng thái" value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className={control}>
+            <option value="ALL">Tất cả trạng thái</option>
+            {Object.entries(statuses).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
+          </select>
+          <select aria-label="Ưu tiên" value={priorityFilter} onChange={event => setPriorityFilter(event.target.value)} className={control}>
+            <option value="ALL">Mọi ưu tiên</option>
+            {Object.entries(priorities).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
+          </select>
+          <select aria-label="Người phụ trách" value={assigneeFilter} onChange={event => setAssigneeFilter(event.target.value)} className={control}>
+            <option value="ALL">Người phụ trách</option>
+            {users.map(user => <option key={user.id} value={user.id}>{user.full_name}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left whitespace-nowrap">
+          <thead><tr>
+            {['Mã lệnh', 'Tên công việc', 'Loại', 'Ưu tiên', 'Trạng thái', 'Người phụ trách', 'Ngày giao'].map(label => <th key={label} scope="col" className="px-4">{label}</th>)}
+          </tr></thead>
+          <tbody>
+            {pagination.items.map(order => {
+              const status = statuses[order.status];
+              const priority = priorities[order.priority];
+              const assignee = users.find(u => u.id === order.assigned_to);
+              return (
+                <tr key={order.id} className="border-b border-slate-100">
+                  <td className="px-4 font-semibold text-[#112D4E]">
+                    {onSelectOrder ? <button type="button" className="hover:text-[#3F72AF]" onClick={() => onSelectOrder(order)}>{order.wo_code}</button> : order.wo_code}
+                  </td>
+                  <td className="px-4 text-slate-600">{order.title}</td>
+                  <td className="px-4 text-slate-500">{woTypes[order.wo_type]?.label || order.wo_type}</td>
+                  <td className="px-4"><span className="risova-status-badge" style={{ color: priority?.color, background: priority?.bg }}>{priority?.label || order.priority}</span></td>
+                  <td className="px-4"><span className="risova-status-badge" style={{ color: status?.color, background: status?.bg }}>{status?.label || order.status}</span></td>
+                  <td className="px-4 text-slate-500">{assignee?.full_name || '—'}</td>
+                  <td className="px-4 text-slate-500">{dateLabel(order.created_at || order.due_date)}</td>
+                </tr>
+              );
+            })}
+            {!filtered.length && <tr><td colSpan={7} className="text-center text-slate-500">Chưa có lệnh việc phát sinh từ lịch bảo trì này.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <Pagination {...pagination} />
+    </section>
+  );
+}
+
+export default function SchedulesPage({ onGenerateWoFromSchedule, onSelectWorkOrder }) {
+  const { data, ENUMS, createMaintenanceSchedule, updateMaintenanceSchedule } = useData();
+  const [params, setParams] = useSearchParams();
   const [filterType, setFilterType] = useState('ALL');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [specialtyFilter, setSpecialtyFilter] = useState('ALL');
+  const [modal, setModal] = useState(null);
+  const selectedSchedule = data.maintenance_schedules.find(schedule => String(schedule.id) === params.get('schedule'));
+  const tab = ['orders', 'parts'].includes(params.get('tab')) ? params.get('tab') : 'overview';
+  const searchQuery = searchTerm.trim().toLowerCase();
 
-  const [form, setForm] = useState({
-    title: '',
-    asset_id: 1,
-    schedule_type: 'TIME_BASED',
-    assigned_specialty_id: 1,
-    frequency_days: 30,
-    estimated_duration_hours: 2.0,
-    meter_interval: 2000
+  const filteredSchedules = data.maintenance_schedules.filter(schedule => {
+    const asset = data.assets.find(item => item.id === schedule.asset_id);
+    const matchesType = filterType === 'ALL' || schedule.schedule_type === filterType;
+    const matchesStatus = statusFilter === 'ALL' || (schedule.is_active !== false ? 'ACTIVE' : 'PAUSED') === statusFilter;
+    const matchesSpecialty = specialtyFilter === 'ALL' || String(schedule.assigned_specialty_id) === specialtyFilter;
+    const matchesQuery = [schedule.title, schedule.asset_code, asset?.name].join(' ').toLowerCase().includes(searchQuery);
+    return !schedule.is_archived && matchesType && matchesStatus && matchesSpecialty && matchesQuery;
   });
+  const pagination = usePagination(filteredSchedules, [searchQuery, statusFilter, filterType, specialtyFilter].join('|'));
 
-  const filteredSchedules = data.maintenance_schedules.filter(s => {
-    return filterType === 'ALL' || s.schedule_type === filterType;
-  });
+  function showSchedule(schedule) {
+    setParams(schedule ? { schedule: String(schedule.id) } : {});
+    setModal(null);
+    window.scrollTo(0, 0);
+  }
 
-  const handleCreate = (e) => {
-    e.preventDefault();
-    if (!form.title) return;
-    createMaintenanceSchedule(form);
-    setShowCreateModal(false);
-    setForm({
-      title: '',
-      asset_id: 1,
-      schedule_type: 'TIME_BASED',
-      assigned_specialty_id: 1,
-      frequency_days: 30,
-      estimated_duration_hours: 2.0,
-      meter_interval: 2000
-    });
-  };
+  function saveSchedule(values) {
+    if (modal === 'edit' && selectedSchedule) updateMaintenanceSchedule(selectedSchedule.id, values);
+    else createMaintenanceSchedule(values);
+    setModal(null);
+  }
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-page-title font-bold text-[#112D4E]">
-            Kế hoạch Bảo trì Định kỳ (Preventive Maintenance)
-          </h1>
-          <p className="text-body text-[#64748B] mt-0.5">
-            Lập lịch theo chu kỳ Thời gian (TIME_BASED), Chỉ số đồng hồ (METER_BASED) hoặc Kết hợp (HYBRID)
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg font-semibold text-sm shadow-sm transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Thêm kế hoạch bảo dưỡng</span>
-        </button>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b pb-2">
-        <button
-          onClick={() => setFilterType('ALL')}
-          className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
-            filterType === 'ALL' ? 'bg-[#3F72AF] text-white font-bold' : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          Tất cả kế hoạch ({data.maintenance_schedules.length})
-        </button>
-        {Object.entries(ENUMS.SCHEDULE_TYPES).map(([k, v]) => (
-          <button
-            key={k}
-            onClick={() => setFilterType(k)}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
-              filterType === k ? 'bg-[#3F72AF] text-white font-bold' : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            {v.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Schedules Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filteredSchedules.map(schedule => {
-          const asset = data.assets.find(a => a.id === schedule.asset_id);
-          const typeMeta = ENUMS.SCHEDULE_TYPES[schedule.schedule_type] || { label: schedule.schedule_type };
-
-          const isOverdue = schedule.badge_color === 'danger';
-          const isDue = schedule.badge_color === 'warning';
-
-          return (
-            <div
-              key={schedule.id}
-              className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition"
-            >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-[#3F72AF]">
-                    {typeMeta.label}
-                  </span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      isOverdue
-                        ? 'bg-red-100 text-red-600'
-                        : isDue
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-emerald-100 text-emerald-700'
-                    }`}
-                  >
-                    {schedule.status_label || 'Đang theo dõi'}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-[#112D4E]">
-                  {schedule.title}
-                </h3>
-
-                <div className="text-xs text-slate-600 space-y-1.5 pt-1">
-                  <div className="flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-slate-400" />
-                    <span>Thiết bị: <strong>{asset ? asset.name : schedule.asset_code}</strong> ({schedule.asset_code})</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>Thời gian ước tính: <strong>{schedule.estimated_duration_hours} giờ</strong></span>
-                  </div>
-
-                  {schedule.meter_interval && (
-                    <div className="flex items-center gap-2">
-                      <Gauge className="w-4 h-4 text-slate-400" />
-                      <span>Định mức đồng hồ: <strong>{schedule.meter_interval.toLocaleString('vi-VN')} giờ chạy</strong></span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                    <span>Hạn bảo dưỡng kế tiếp: <strong className="font-mono">{new Date(schedule.next_due_date).toLocaleDateString('vi-VN')}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-5 border-t mt-5 flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-[#3F72AF]">
-                  {schedule.display_date}
-                </span>
-
-                <button
-                  onClick={() => {
-                    if (onGenerateWoFromSchedule) {
-                      onGenerateWoFromSchedule(schedule);
-                    }
-                  }}
-                  className="px-3.5 py-1.5 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-                >
-                  <span>Sinh Lệnh việc</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+    <div className="risova-page space-y-6">
+      {selectedSchedule ? (
+        <ScheduleDetails
+          schedule={selectedSchedule}
+          data={data}
+          enums={ENUMS}
+          tab={tab}
+          onChangeTab={next => setParams(next !== 'overview' ? { schedule: String(selectedSchedule.id), tab: next } : { schedule: String(selectedSchedule.id) }, { replace: true })}
+          onBack={() => showSchedule()}
+          onEdit={() => setModal('edit')}
+          onGenerate={onGenerateWoFromSchedule}
+          ordersView={<ScheduleOrders orders={data.work_orders.filter(order => order.schedule_id === selectedSchedule.id)} statuses={ENUMS.WO_STATUSES} priorities={ENUMS.PRIORITIES} woTypes={ENUMS.WO_TYPES} users={data.users} onSelectOrder={onSelectWorkOrder} onGenerate={onGenerateWoFromSchedule} schedule={selectedSchedule} />}
+        />
+      ) : (
+        <>
+          <header className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1>Bảo trì phòng ngừa</h1>
+              <p className="text-slate-500">Quản lý lịch định kỳ theo thời gian, đồng hồ và kết hợp.</p>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Create Schedule Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs" onClick={() => setShowCreateModal(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-3 border-b mb-4">
-              <h3 className="text-base font-bold text-[#112D4E]">Thêm kế hoạch bảo trì định kỳ (PM)</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#112D4E] mb-1">Tiêu đề kế hoạch (*)</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="VD: Bảo dưỡng cấp 1.000 giờ máy CNC"
-                  value={form.title}
-                  onChange={e => setForm({ ...form, title: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                />
+            <button type="button" onClick={() => setModal('create')} className={primaryButton}>
+              <Plus size={16} /> Tạo lịch bảo trì
+            </button>
+          </header>
+          <section className="risova-data-table">
+            <div className="risova-table-toolbar flex flex-wrap gap-3">
+              <div className="relative min-w-48 flex-1">
+                <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input aria-label="Tìm lịch bảo trì" placeholder="Tìm theo tên, mã, thiết bị..." value={searchTerm} onChange={event => setSearchTerm(event.target.value)} className={control + ' w-full pl-9'} />
               </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#112D4E] mb-1">Thiết bị bảo trì</label>
-                <select
-                  value={form.asset_id}
-                  onChange={e => setForm({ ...form, asset_id: Number(e.target.value) })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                >
-                  {data.assets.map(a => (
-                    <option key={a.id} value={a.id}>{a.name} ({a.asset_code})</option>
+              <select aria-label="Trạng thái lịch bảo trì" value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className={control}>
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="PAUSED">Tạm dừng</option>
+              </select>
+              <select aria-label="Loại lịch bảo trì" value={filterType} onChange={event => setFilterType(event.target.value)} className={control}>
+                <option value="ALL">Mọi loại lịch</option>
+                {Object.entries(scheduleTypeLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+              </select>
+              <select aria-label="Chuyên môn phụ trách" value={specialtyFilter} onChange={event => setSpecialtyFilter(event.target.value)} className={control}>
+                <option value="ALL">Chuyên môn phụ trách</option>
+                {data.specialties.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left whitespace-nowrap">
+                <thead><tr>
+                  {['Tên lịch bảo trì', 'Thiết bị', 'Loại lịch', 'Chu kỳ', 'Bảo trì tiếp theo', 'Trạng thái'].map(label => <th key={label} scope="col" className="px-4">{label}</th>)}
+                  <th scope="col" className="px-4"><span className="sr-only">Thao tác</span></th>
+                </tr></thead>
+                <tbody>
+                  {pagination.items.map(schedule => (
+                    <tr key={schedule.id} className="border-b border-slate-100">
+                      <td className="px-4"><button type="button" className="font-semibold text-[#112D4E] hover:text-[#3F72AF]" onClick={() => showSchedule(schedule)}>{schedule.title}</button></td>
+                      <td className="px-4 text-slate-500">{schedule.asset_code}</td>
+                      <td className="px-4 text-slate-500">{scheduleTypeLabels[schedule.schedule_type] || schedule.schedule_type}</td>
+                      <td className="px-4 text-slate-500">{cycleLabel(schedule, data.assets.find(item => item.id === schedule.asset_id))}</td>
+                      <td className="px-4 text-slate-500">{schedule.next_due_date ? dateLabel(schedule.next_due_date) : 'Theo mức đo'}</td>
+                      <td className="px-4"><ScheduleState schedule={schedule} /></td>
+                      <td className="px-4 text-right">
+                        {onGenerateWoFromSchedule && schedule.is_active !== false && <button type="button" onClick={() => onGenerateWoFromSchedule(schedule)} className="text-xs font-medium text-[#3F72AF] hover:underline">Sinh WO</button>}
+                      </td>
+                    </tr>
                   ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#112D4E] mb-1">Loại lịch trình</label>
-                  <select
-                    value={form.schedule_type}
-                    onChange={e => setForm({ ...form, schedule_type: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                  >
-                    <option value="TIME_BASED">Theo thời gian định kỳ</option>
-                    <option value="METER_BASED">Theo chỉ số đồng hồ</option>
-                    <option value="HYBRID">Kết hợp (Cái nào đến trước)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#112D4E] mb-1">Ước tính (giờ)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={form.estimated_duration_hours}
-                    onChange={e => setForm({ ...form, estimated_duration_hours: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg text-xs font-semibold shadow-sm"
-                >
-                  Lưu kế hoạch
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+                  {!pagination.total && <tr><td colSpan={7} className="text-center text-slate-500">Không tìm thấy lịch bảo trì phù hợp.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+            <Pagination {...pagination} />
+          </section>
+        </>
+      )}
+      {(modal === 'create' || (modal === 'edit' && selectedSchedule)) && (
+        <ScheduleForm
+          schedule={modal === 'edit' ? selectedSchedule : undefined}
+          assets={data.assets}
+          specialties={data.specialties}
+          onSave={saveSchedule}
+          onClose={() => setModal(null)}
+        />
       )}
     </div>
   );

@@ -1,31 +1,42 @@
-import React, { useState } from 'react';
+import { usePagination } from '../hooks/usePagination';
+import { useSearchParams } from 'react-router-dom';
+import MeasurementDialog from '../components/MeasurementDialog';
+import MonitorViews from '../components/MonitorViews';
+import Pagination from '../components/Pagination';
+import Dialog from '../components/Dialog';
+import { Search } from 'lucide-react';
+import { useState } from 'react';
 import { useAuth, useData } from '../context/DataContext';
+import { canManagePage } from '../constants/permissions';
 import {
-  Activity,
   AlertTriangle,
   Zap,
   Radio,
   Sliders,
   CheckCircle,
-  Clock,
   ShieldAlert,
   Flame,
   Gauge,
   Thermometer,
   Vibrate,
-  ArrowRight,
   Plus
 } from 'lucide-react';
 
-export default function IoTSimulatorPage({ onTriggerEmergencyWo }) {
+export default function IoTSimulatorPage({ onTriggerEmergencyWo, onSelectWorkOrder }) {
   const { currentUser } = useAuth();
-  const {
-    data,
-    ENUMS,
-    simulateIoTMeasurement,
-    acknowledgeAlert,
-    resolveAlert
-  } = useData();
+  const { data, simulateIoTMeasurement } = useData();
+  const canManage = canManagePage(currentUser?.role, 'iot');
+
+  const [params, setParams] = useSearchParams();
+  const view = params.get('view');
+  const setView = value => setParams(value ? { view: value } : {});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('ALL');
+  const [assetFilter, setAssetFilter] = useState('ALL');
+  const metricLabels = {TEMPERATURE:'Nhiệt độ',VIBRATION:'Độ rung động cơ',PRESSURE:'Áp suất',MOTOR_TEMP:'Nhiệt độ động cơ'};
+  const filteredReadings = (data.telemetry_logs || []).filter(log => {const asset = data.assets.find(item => item.id === log.asset_id); return [asset?.name,asset?.asset_code].join(' ').toLowerCase().includes(searchTerm.toLowerCase()) && (sourceFilter === 'ALL' || sourceFilter === log.source) && (assetFilter === 'ALL' || String(log.asset_id) === assetFilter);}).sort((a,b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+  const pagination = usePagination(filteredReadings,[searchTerm,sourceFilter,assetFilter].join('|'));
+  const latestReading = [...(data.telemetry_logs || [])].sort((a,b) => new Date(b.recorded_at) - new Date(a.recorded_at))[0];
 
   // Local interactive slider values for simulation
   const [sliderValues, setSliderValues] = useState({
@@ -108,29 +119,44 @@ export default function IoTSimulatorPage({ onTriggerEmergencyWo }) {
     simulateIoTMeasurement(config.assetId, config.metric, currentVal, config.unit);
   };
 
-  return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-page-title font-bold text-[#112D4E]">
-              Giám sát Đo lường IoT & Bộ mô phỏng Cảm biến (Simulator)
-            </h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              REALTIME
-            </span>
-          </div>
-          <p className="text-body text-[#64748B] mt-0.5">
-            Kéo thanh trượt để thử nghiệm kịch bản nhiệt độ / độ rung vượt ngưỡng cảnh báo và kích hoạt tạo lệnh việc khẩn cấp
-          </p>
-        </div>
-      </div>
+  if (view === 'alerts' || view === 'thresholds') return <MonitorViews mode={view} onBack={() => setView(null)} onModeChange={setView} onSelectWorkOrder={onSelectWorkOrder} />;
 
+  return (
+    <div className="risova-page space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div><h1>Cảm biến thiết bị</h1><p className="text-slate-500">Dữ liệu đo trực tiếp từ cảm biến. Cảnh báo là bản ghi riêng được sinh khi vượt ngưỡng.</p></div>
+        <div className="flex items-center flex-wrap gap-3"><button onClick={() => setView('alerts')} className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#DBE2EF] rounded text-xs font-semibold text-[#112D4E]"><AlertTriangle size={16} />Xem cảnh báo</button><button onClick={() => setView('thresholds')} className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#DBE2EF] rounded text-xs font-semibold text-[#112D4E]"><Sliders size={16} />Quản lý ngưỡng</button>{canManage && <button onClick={() => setView('measurement')} className="inline-flex items-center gap-2 px-4 py-2 bg-[#3F72AF] text-white rounded text-xs font-semibold"><Plus size={15} />Thêm dữ liệu</button>}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 max-w-xl">
+        <div className="bg-white border border-slate-200 rounded-lg px-5 py-4"><p className="text-xs text-slate-500">Cảm biến trực tuyến</p><strong className="block mt-2 text-xl font-semibold">{new Set((data.telemetry_logs || []).map(log => log.asset_id)).size}/{data.assets.length}</strong></div>
+        <div className="bg-white border border-slate-200 rounded-lg px-5 py-4"><p className="text-xs text-slate-500">Bản ghi gần nhất</p><strong className="block mt-2 text-xl font-semibold">{latestReading ? new Date(latestReading.recorded_at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Ho_Chi_Minh'}) : '—'}</strong></div>
+      </div>
+      <section className="risova-data-table">
+        <div className="risova-table-toolbar flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input aria-label="Tìm chỉ số thiết bị" placeholder="Tìm theo mã, tên thiết bị..." value={searchTerm} onChange={event => setSearchTerm(event.target.value)} className="w-full pl-9 pr-3 py-2 border border-slate-200 text-xs" /></div>
+          <select aria-label="Nguồn chỉ số" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} className="px-3 py-2 border border-slate-200 text-xs text-slate-500"><option value="ALL">Tất cả nguồn</option><option value="IOT_SENSOR">Cảm biến IoT</option><option value="MANUAL">Nhập thủ công</option></select>
+          <select aria-label="Thiết bị cảm biến" value={assetFilter} onChange={event => setAssetFilter(event.target.value)} className="px-3 py-2 border border-slate-200 text-xs text-slate-500"><option value="ALL">Tất cả thiết bị</option>{data.assets.map(asset => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select>
+        </div>
+        <div className="overflow-x-auto"><table className="w-full text-left whitespace-nowrap"><thead><tr>{['Mã thiết bị','Tên thiết bị','Chỉ số','Giá trị','Đơn vị','Nguồn','Thời gian'].map(label => <th key={label} className="px-4">{label}</th>)}</tr></thead><tbody>
+          {pagination.items.map(log => {
+            const asset = data.assets.find(item => item.id === log.asset_id);
+            const threshold = data.asset_thresholds.find(item => item.asset_id === log.asset_id && item.metric_type === log.metric_type);
+            return <tr key={log.id} className="border-b border-slate-100"><td className="px-4 font-semibold">{asset?.asset_code || '—'}</td><td className="px-4 text-slate-500">{asset?.name || 'Thiết bị chưa xác định'}</td><td className="px-4 text-slate-500">{metricLabels[log.metric_type] || log.metric_type}</td><td className={'px-4 font-medium ' + (threshold && log.value >= threshold.danger_limit ? 'text-red-500' : threshold && log.value >= threshold.warning_limit ? 'text-amber-600' : 'text-slate-600')}>{log.value}</td><td className="px-4 text-slate-500">{log.unit}</td><td className="px-4 text-slate-500"><span className="inline-flex items-center gap-2">{log.source === 'IOT_SENSOR' ? <><Radio size={15} className="text-[#3F72AF]" />IoT</> : data.users.find(user => user.id === log.recorded_by)?.full_name || 'Nhập thủ công'}</span></td><td className="px-4 text-xs text-slate-500">{new Date(log.recorded_at).toLocaleString('vi-VN')}</td></tr>;
+          })}
+          {!filteredReadings.length && <tr><td colSpan={7} className="text-center py-12 text-slate-400">Không tìm thấy chỉ số phù hợp.</td></tr>}
+        </tbody></table></div>
+        <Pagination {...pagination} />
+      </section>
+      {canManage && <button onClick={() => setView('simulator')} className="text-xs text-slate-400 hover:text-[#3F72AF] inline-flex items-center gap-2"><Sliders size={14} />Mở mô phỏng cảm biến</button>}
+
+      {canManage && view === 'measurement' && <MeasurementDialog onClose={() => setView(null)} />}
+
+      {canManage && view === 'simulator' && <Dialog title="Mô phỏng cảm biến" onClose={() => setView(null)} width={1100}>
       {/* 1. IOT SENSOR SIMULATOR DASHBOARD CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {sensorConfigs.map(config => {
+        {sensorConfigs.map(baseConfig => {
+          const threshold = data.asset_thresholds.find(item => item.asset_id === baseConfig.assetId && item.metric_type === baseConfig.metric);
+          const config = {...baseConfig,warnLimit:threshold?.warning_limit ?? baseConfig.warnLimit,dangerLimit:threshold?.danger_limit ?? baseConfig.dangerLimit};
           const val = sliderValues[config.assetId] || config.min;
           const isDanger = val >= config.dangerLimit;
           const isWarning = val >= config.warnLimit && !isDanger;
@@ -231,8 +257,9 @@ export default function IoTSimulatorPage({ onTriggerEmergencyWo }) {
                   step={config.step}
                   value={val}
                   onChange={(e) => handleSliderDrag(config, e.target.value)}
-                  onMouseUp={() => handleSliderRelease(config)}
-                  onTouchEnd={() => handleSliderRelease(config)}
+                  aria-label={config.metricLabel}
+                  onPointerUp={() => handleSliderRelease(config)}
+                  onKeyUp={event => {if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) handleSliderRelease(config);}}
                   className={`w-full h-2 rounded-lg appearance-none cursor-pointer transition ${
                     isDanger ? 'accent-red-600' : isWarning ? 'accent-amber-500' : 'accent-[#3F72AF]'
                   }`}
@@ -263,6 +290,7 @@ export default function IoTSimulatorPage({ onTriggerEmergencyWo }) {
                   <button
                     onClick={() => {
                       if (onTriggerEmergencyWo) {
+                        setView(null);
                         onTriggerEmergencyWo({
                           asset_id: config.assetId,
                           title: `Xử lý sự cố ${config.metricLabel} vượt ngưỡng (${val}${config.unit})`,
@@ -284,121 +312,8 @@ export default function IoTSimulatorPage({ onTriggerEmergencyWo }) {
         })}
       </div>
 
-      {/* 2. REALTIME ALERTS MANAGEMENT TABLE */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b">
-          <div>
-            <h3 className="text-card-title font-bold text-[#112D4E] flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <span>Nhật ký Cảnh báo IoT Thời gian thực ({data.alerts.length})</span>
-            </h3>
-            <p className="text-caption text-[#64748B]">
-              Danh sách sự kiện cảnh báo được kích hoạt tự động từ hệ thống cảm biến
-            </p>
-          </div>
-        </div>
+      </Dialog>}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase text-[#64748B] tracking-wider">
-                <th className="py-3 px-4">Thời gian</th>
-                <th className="py-3 px-4">Tên cảnh báo</th>
-                <th className="py-3 px-4">Thiết bị</th>
-                <th className="py-3 px-4">Giá trị đo / Ngưỡng</th>
-                <th className="py-3 px-4">Mức độ</th>
-                <th className="py-3 px-4">Trạng thái</th>
-                <th className="py-3 px-4 text-right">Hành động xử lý</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {data.alerts.map(alert => {
-                const isCrit = alert.level === 'DANGER';
-                const asset = data.assets.find(a => a.id === alert.asset_id);
-
-                return (
-                  <tr key={alert.id} className="hover:bg-slate-50 transition">
-                    <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
-                      {new Date(alert.triggered_at).toLocaleString('vi-VN')}
-                    </td>
-                    <td className="py-3 px-4 font-bold text-[#112D4E]">
-                      {alert.title}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-[#3F72AF]">
-                      {asset ? `${asset.name} (${asset.asset_code})` : `Asset #${alert.asset_id}`}
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold">
-                      <span className={isCrit ? 'text-red-600' : 'text-amber-600'}>
-                        {alert.trigger_value}
-                      </span>{' '}
-                      <span className="text-slate-400 font-normal">
-                        (Ngưỡng: &gt; {alert.threshold_val})
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        isCrit ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {ENUMS.ALERT_LEVELS[alert.level]?.label || alert.level}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        alert.status === 'OPEN'
-                          ? 'bg-red-100 text-red-600'
-                          : alert.status === 'ACKNOWLEDGED'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {ENUMS.ALERT_STATUSES[alert.status]?.label || alert.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {alert.status === 'OPEN' && (
-                          <button
-                            onClick={() => acknowledgeAlert(alert.id, currentUser)}
-                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-[11px] font-semibold transition cursor-pointer"
-                          >
-                            Tiếp nhận
-                          </button>
-                        )}
-
-                        {alert.status !== 'RESOLVED' && (
-                          <button
-                            onClick={() => resolveAlert(alert.id)}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-[11px] font-semibold transition cursor-pointer"
-                          >
-                            Giải quyết xong
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => {
-                            if (onTriggerEmergencyWo) {
-                              onTriggerEmergencyWo({
-                                asset_id: alert.asset_id,
-                                title: `Khẩn cấp: ${alert.title} vượt ngưỡng`,
-                                wo_type: 'EMERGENCY',
-                                priority: 'CRITICAL',
-                                description: alert.description
-                              });
-                            }
-                          }}
-                          className="px-2.5 py-1 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-md text-[11px] font-semibold transition cursor-pointer"
-                        >
-                          + Giao việc
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
-

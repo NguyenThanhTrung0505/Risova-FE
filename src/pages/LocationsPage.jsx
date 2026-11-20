@@ -1,356 +1,279 @@
-import React, { useState } from 'react';
-import { useData } from '../context/DataContext';
-import {
-  MapPin,
-  Building,
-  Factory,
-  Layers,
-  Plus,
-  ChevronRight,
-  FolderTree,
-  Boxes,
-  X
-} from 'lucide-react';
+import { equipmentDate } from '../utils/equipment';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ChevronRight, EllipsisVertical, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react';
+import Dialog from '../components/Dialog';
+import { useAuth, useData } from '../context/DataContext';
+import { canManagePage } from '../constants/permissions';
+import { EquipmentField, equipmentFieldClass } from './equipment/EquipmentFields';
+import './equipment/equipment.css';
 
-export default function LocationsPage() {
-  const { data, ENUMS, createLocation } = useData();
-  const [selectedLocId, setSelectedLocId] = useState(1);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+const parentTypes = { ZONE: 'PLANT', LINE: 'ZONE' };
+const typeLabels = { PLANT: 'Nhà máy', ZONE: 'Khu vực', LINE: 'Dây chuyền' };
+const codePrefixes = { PLANT: 'P', ZONE: 'Z', LINE: 'L' };
 
-  const [formData, setFormData] = useState({
-    code: '',
+function LocationForm({ location, locations, onCancel, onSave }) {
+  const [form, setForm] = useState(() => location || {
     name: '',
-    location_type: 'ZONE',
-    parent_id: 1,
-    description: ''
+    location_type: '',
+    parent_id: '',
+    description: '',
   });
 
-  // Build tree
-  const plant = data.locations.find(l => l.location_type === 'PLANT') || data.locations[0];
-  const zones = data.locations.filter(l => l.location_type === 'ZONE');
-  const lines = data.locations.filter(l => l.location_type === 'LINE');
+  function change(event) {
+    const { name, value } = event.target;
+    setForm(previous => ({ ...previous, [name]: value, ...(name === 'location_type' ? { parent_id: '' } : {}) }));
+  }
 
-  const selectedLoc = data.locations.find(l => l.id === selectedLocId) || plant;
-
-  // Assets inside selected location
-  const locAssets = data.assets.filter(a => a.location_id === selectedLoc.id);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.code) {
-      alert('Vui lòng nhập tên và mã địa điểm!');
+  function submit(event) {
+    event.preventDefault();
+    const name = form.name.trim();
+    if (!name) {
+      event.currentTarget.elements.name.setCustomValidity('Nhập tên vị trí để tiếp tục.');
+      event.currentTarget.reportValidity();
       return;
     }
-    createLocation(formData);
-    setShowCreateModal(false);
-    setFormData({
-      code: '',
-      name: '',
-      location_type: 'ZONE',
-      parent_id: 1,
-      description: ''
+    const prefix = codePrefixes[form.location_type];
+    let sequence = 1;
+    while (locations.some(item => item.code === prefix + '-' + String(sequence).padStart(3, '0'))) sequence += 1;
+    const code = location?.code || prefix + '-' + String(sequence).padStart(3, '0');
+    onSave({
+      code,
+      name,
+      location_type: form.location_type,
+      parent_id: form.parent_id ? Number(form.parent_id) : null,
+      description: (form.description ?? '').trim(),
     });
-  };
+  }
+
+  const isParent = location && locations.some(item => item.parent_id === location.id);
+  const availableParents = locations.filter(item => item.id !== location?.id && item.location_type === parentTypes[form.location_type]);
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-page-title font-bold text-[#112D4E]">
-            Địa điểm & Sơ đồ Phân cấp Nhà máy (Locations)
-          </h1>
-          <p className="text-body text-[#64748B] mt-0.5">
-            Cấu trúc 3 cấp chuẩn Enterprise CMMS: Nhà máy (PLANT) → Phân xưởng (ZONE) → Dây chuyền (LINE)
-          </p>
-        </div>
+    <form onSubmit={submit}>
+      <div className="location-form-fields">
+        <EquipmentField label="Tên vị trí">
+          <input className={equipmentFieldClass} required name="name" value={form.name} onChange={event => { event.target.setCustomValidity(''); change(event); }} placeholder="Nhập tên vị trí" />
+        </EquipmentField>
+        <EquipmentField label="Cấp bậc vị trí">
+          <select className={equipmentFieldClass} required name="location_type" value={form.location_type} onChange={change} disabled={isParent}>
+            <option value="">Chọn cấp bậc vị trí</option>
+            {Object.entries(typeLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </EquipmentField>
+        <EquipmentField label="Vị trí cha">
+          <select className={equipmentFieldClass} name="parent_id" value={form.parent_id || ''} onChange={change} required={Boolean(parentTypes[form.location_type])} disabled={!parentTypes[form.location_type]}>
+            <option value="">Chọn vị trí cha</option>
+            {availableParents.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </EquipmentField>
+        <EquipmentField label="Mô tả">
+          <textarea className={equipmentFieldClass} name="description" value={form.description || ''} onChange={change} rows={4} placeholder="Nhập mô tả tại đây..." />
+        </EquipmentField>
+      </div>
+      <div className="risova-form-actions">
+        <button type="button" onClick={onCancel}>Hủy</button>
+        <button type="submit">Lưu vị trí</button>
+      </div>
+    </form>
+  );
+}
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg font-semibold text-sm shadow-sm transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Thêm địa điểm</span>
+function LocationDrawer({ location, parent, assets, onClose, onSelectAsset }) {
+  const [showAssets, setShowAssets] = useState(false);
+  return (
+    <aside className="location-drawer" aria-labelledby="location-detail-title">
+      <div className="location-drawer-head">
+        <h2 id="location-detail-title">Chi tiết vị trí</h2>
+        <button type="button" className="risova-icon-button" aria-label="Đóng chi tiết vị trí" onClick={onClose}><X size={20} /></button>
+      </div>
+      <div className="location-drawer-body">
+        <div className="equipment-title-row">
+          <span className="equipment-list-icon"><MapPin size={20} /></span>
+          <strong>{location.name}</strong>
+        </div>
+        <dl className="equipment-detail-fields">
+          <div><dt>Mã vị trí</dt><dd>{location.code}</dd></div>
+          <div><dt>Loại vị trí</dt><dd>{typeLabels[location.location_type]}</dd></div>
+          <div><dt>Vị trí cha</dt><dd>{parent?.name || '—'}</dd></div>
+          <div><dt>Mô tả</dt><dd>{location.description || '—'}</dd></div>
+          <div>
+            <dt>Thiết bị</dt>
+            <dd><button type="button" className="equipment-table-link" aria-expanded={showAssets} onClick={() => setShowAssets(previous => !previous)}>{assets.length} thiết bị</button></dd>
+          </div>
+          {showAssets && (
+            <ul className="location-drawer-assets">
+              {assets.map(asset => (
+                <li key={asset.id}>
+                  {onSelectAsset
+                    ? <button type="button" className="equipment-table-link" onClick={() => onSelectAsset(asset)}>{asset.name}</button>
+                    : asset.name}
+                </li>
+              ))}
+              {!assets.length && <li>Chưa có thiết bị.</li>}
+            </ul>
+          )}
+          <div><dt>Ngày tạo</dt><dd>{equipmentDate(location.created_at)}</dd></div>
+        </dl>
+      </div>
+    </aside>
+  );
+}
+
+function LocationTreeNode({ location, childrenById, assetsById, selectedId, openMenuId, canManage, onSelect, onMenu, onEdit, onDelete, visited }) {
+  if (visited.has(location.id)) return null;
+  const branch = new Set([...visited, location.id]);
+  const children = childrenById.get(location.id) || [];
+  const assets = assetsById.get(location.id) || [];
+  const expandedMenu = openMenuId === location.id;
+  return (
+    <li>
+      <div className="location-node">
+        {location.location_type === 'PLANT' ? <MapPin size={25} /> : <ChevronRight size={20} />}
+        <button type="button" className="location-node-label" onClick={() => onSelect(location)} aria-expanded={selectedId === location.id}>
+          <strong>{location.name} ({location.code})</strong>
+          <small>{typeLabels[location.location_type]}</small>
         </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Location Tree Navigation */}
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#112D4E] pb-2 border-b">
-            <FolderTree className="w-4 h-4 text-[#3F72AF]" />
-            <span>Cây sơ đồ mặt bằng xưởng</span>
-          </div>
-
-          <div className="space-y-2">
-            {/* Plant Level */}
-            {plant && (
-              <div
-                onClick={() => setSelectedLocId(plant.id)}
-                className={`p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
-                  selectedLocId === plant.id
-                    ? 'bg-blue-50/80 border-[#3F72AF] text-[#3F72AF] font-bold shadow-xs'
-                    : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-[#112D4E]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Factory className="w-5 h-5 text-[#3F72AF]" />
-                  <div>
-                    <div className="text-xs font-bold">{plant.name}</div>
-                    <span className="text-[10px] uppercase font-mono tracking-wider opacity-75">
-                      {plant.code} • CẤP NHÀ MÁY
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </div>
-            )}
-
-            {/* Zone Level */}
-            <div className="pl-4 space-y-2 border-l-2 border-slate-200 ml-3">
-              {zones.map(zone => {
-                const zoneLines = lines.filter(l => l.parent_id === zone.id);
-                const isZoneSelected = selectedLocId === zone.id;
-
-                return (
-                  <div key={zone.id} className="space-y-1.5">
-                    <div
-                      onClick={() => setSelectedLocId(zone.id)}
-                      className={`p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between ${
-                        isZoneSelected
-                          ? 'bg-sky-50 border-[#3F72AF] text-[#3F72AF] font-bold'
-                          : 'bg-white border-slate-200 hover:bg-slate-50 text-[#112D4E]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-slate-500" />
-                        <div>
-                          <div className="text-xs font-semibold">{zone.name}</div>
-                          <span className="text-[10px] font-mono text-slate-400">[{zone.code}]</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
-                        {data.assets.filter(a => a.location_id === zone.id).length} máy
-                      </span>
-                    </div>
-
-                    {/* Line Level under Zone */}
-                    {zoneLines.length > 0 && (
-                      <div className="pl-3 space-y-1 border-l-2 border-sky-100 ml-2">
-                        {zoneLines.map(line => {
-                          const isLineSelected = selectedLocId === line.id;
-                          return (
-                            <div
-                              key={line.id}
-                              onClick={() => setSelectedLocId(line.id)}
-                              className={`p-2 rounded-md text-xs transition cursor-pointer flex items-center justify-between ${
-                                isLineSelected
-                                  ? 'bg-[#3F72AF] text-white font-semibold'
-                                  : 'text-slate-600 hover:bg-slate-100'
-                              }`}
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                <span>{line.name}</span>
-                              </div>
-                              <span className="text-[10px] font-mono opacity-80">
-                                {data.assets.filter(a => a.location_id === line.id).length} máy
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Location Details & Assets inside */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Location Summary Card */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#3F72AF] bg-blue-50 px-2 py-0.5 rounded">
-                  {ENUMS.LOCATION_TYPES[selectedLoc.location_type]?.label || selectedLoc.location_type}
-                </span>
-                <h2 className="text-xl font-bold text-[#112D4E] mt-2">
-                  {selectedLoc.name}
-                </h2>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  Mã định danh: {selectedLoc.code}
-                </p>
-              </div>
-
-              <div className="text-right">
-                <span className="text-2xl font-bold text-[#3F72AF]">
-                  {locAssets.length}
-                </span>
-                <div className="text-[11px] text-[#64748B]">Thiết bị trực thuộc</div>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-600 mt-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
-              {selectedLoc.description || 'Chưa có thông tin mô tả chi tiết khu vực này.'}
-            </p>
-          </div>
-
-          {/* Assets in Location Table */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5">
-            <h3 className="text-sm font-bold text-[#112D4E] mb-3 flex items-center gap-2">
-              <Boxes className="w-4 h-4 text-[#3F72AF]" />
-              <span>Danh sách thiết bị lắp đặt tại {selectedLoc.name} ({locAssets.length})</span>
-            </h3>
-
-            {locAssets.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-[11px] font-bold uppercase text-[#64748B]">
-                      <th className="pb-2.5 pr-4">Mã</th>
-                      <th className="pb-2.5 px-4">Tên thiết bị</th>
-                      <th className="pb-2.5 px-4">Ưu tiên</th>
-                      <th className="pb-2.5 px-4">Trạng thái</th>
-                      <th className="pb-2.5 pl-4 text-right">Chỉ số đo</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {locAssets.map(asset => {
-                      const stat = ENUMS.ASSET_STATUSES[asset.status] || { label: asset.status, color: '#64748B', bg: '#F1F5F9' };
-                      const pri = ENUMS.PRIORITIES[asset.priority] || { label: asset.priority, color: '#64748B', bg: '#F1F5F9' };
-
-                      return (
-                        <tr key={asset.id} className="hover:bg-slate-50 transition">
-                          <td className="py-2.5 pr-4 font-bold font-mono text-[#3F72AF]">
-                            {asset.asset_code}
-                          </td>
-                          <td className="py-2.5 px-4 font-semibold text-[#112D4E]">
-                            {asset.name}
-                          </td>
-                          <td className="py-2.5 px-4">
-                            <span style={{ color: pri.color, backgroundColor: pri.bg }} className="px-2 py-0.5 rounded text-[10px] font-bold">
-                              {pri.label}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4">
-                            <span style={{ color: stat.color, backgroundColor: stat.bg }} className="px-2 py-0.5 rounded text-[10px] font-bold">
-                              {stat.label}
-                            </span>
-                          </td>
-                          <td className="py-2.5 pl-4 text-right font-mono text-slate-500">
-                            {asset.current_meter} {asset.meter_unit}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-xs text-slate-400">
-                Chưa có thiết bị nào được gán vào khu vực này.
+        <button type="button" className="location-node-count" onClick={() => onSelect(location)} aria-label={assets.length + ' thiết bị tại ' + location.name}>{assets.length} thiết bị</button>
+        {canManage && (
+          <div className="location-node-menu">
+            <button type="button" className="risova-icon-button" aria-expanded={expandedMenu} aria-label={'Tùy chọn ' + location.name} onClick={() => onMenu(expandedMenu ? null : location.id)}><EllipsisVertical size={18} /></button>
+            {expandedMenu && (
+              <div className="location-node-menu-items">
+                <button type="button" onClick={() => onEdit(location)}><Pencil size={16} /> Sửa</button>
+                <button type="button" className="text-red-600" onClick={() => onDelete(location)}><Trash2 size={16} /> Xóa</button>
               </div>
             )}
           </div>
+        )}
+      </div>
+      {!!children.length && (
+        <ul>
+          {children.map(child => <LocationTreeNode key={child.id} location={child} childrenById={childrenById} assetsById={assetsById} selectedId={selectedId} openMenuId={openMenuId} canManage={canManage} onSelect={onSelect} onMenu={onMenu} onEdit={onEdit} onDelete={onDelete} visited={branch} />)}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+export default function LocationsPage({ onSelectAsset }) {
+  const { currentUser } = useAuth();
+  const { data, createLocation, updateLocation, deleteLocation } = useData();
+  const canManage = canManagePage(currentUser?.role, 'locations');
+  const [params, setParams] = useSearchParams();
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [form, setForm] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const selectedLocation = data.locations.find(item => String(item.id) === params.get('location'));
+  const childrenById = new Map();
+  const knownIds = new Set(data.locations.map(item => item.id));
+  for (const item of data.locations) {
+    const parentId = knownIds.has(item.parent_id) ? item.parent_id : null;
+    const group = childrenById.get(parentId) || [];
+    group.push(item);
+    childrenById.set(parentId, group);
+  }
+  const assetsById = new Map();
+  for (const asset of data.assets) {
+    if (asset.is_archived) continue;
+    let id = asset.location_id;
+    const seen = new Set();
+    while (id != null && !seen.has(id)) {
+      seen.add(id);
+      const group = assetsById.get(id) || [];
+      group.push(asset);
+      assetsById.set(id, group);
+      id = data.locations.find(item => item.id === id)?.parent_id;
+    }
+  }
+
+  useEffect(() => {
+    if (openMenuId == null) return undefined;
+    const closeOnClick = event => {
+      if (!event.target.closest('.location-node-menu')) setOpenMenuId(null);
+    };
+    const closeOnEscape = event => {
+      if (event.key === 'Escape') setOpenMenuId(null);
+    };
+    document.addEventListener('pointerdown', closeOnClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [openMenuId]);
+
+  function openLocation(location) {
+    setOpenMenuId(null);
+    setParams({ location: String(location.id) });
+  }
+
+  function save(values) {
+    if (form.location) updateLocation(form.location.id, values);
+    else createLocation(values);
+    setForm(null);
+  }
+
+  function remove() {
+    if (deleteLocation(pendingDelete.id) && selectedLocation?.id === pendingDelete.id) setParams({});
+    setPendingDelete(null);
+  }
+
+  return (
+    <div className="risova-page space-y-6">
+      <div className="equipment-detail-header">
+        <div>
+          <h1>Cấu trúc vị trí</h1>
+          <p className="text-slate-500">Quản lý phân cấp Nhà máy → Xưởng → Dây chuyền.</p>
         </div>
+        {canManage && <button type="button" className="equipment-button equipment-button-primary" onClick={() => setForm({})}><Plus size={17} /> Thêm vị trí</button>}
       </div>
 
-      {/* Create Location Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs" onClick={() => setShowCreateModal(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-3 border-b mb-4">
-              <h3 className="text-base font-bold text-[#112D4E]">Thêm địa điểm / Phân xưởng</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <section className="equipment-card location-tree" aria-label="Cấu trúc vị trí">
+        <ul>
+          {(childrenById.get(null) || []).map(location => (
+            <LocationTreeNode
+              key={location.id}
+              location={location}
+              childrenById={childrenById}
+              assetsById={assetsById}
+              selectedId={selectedLocation?.id}
+              openMenuId={openMenuId}
+              canManage={canManage}
+              onSelect={openLocation}
+              onMenu={setOpenMenuId}
+              onEdit={item => { setOpenMenuId(null); setForm({ location: item }); }}
+              onDelete={item => { setOpenMenuId(null); setPendingDelete(item); }}
+              visited={new Set()}
+            />
+          ))}
+        </ul>
+        {!data.locations.length && <p className="risova-empty-state">Chưa có vị trí.</p>}
+      </section>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#112D4E] mb-1">Mã địa điểm (*)</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="VD: ZONE-D, LINE-03"
-                  value={formData.code}
-                  onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#112D4E] mb-1">Tên địa điểm (*)</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="VD: Phân xưởng Sơn & Xử lý bề mặt"
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#112D4E] mb-1">Cấp địa điểm</label>
-                  <select
-                    value={formData.location_type}
-                    onChange={e => setFormData({ ...formData, location_type: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                  >
-                    <option value="ZONE">Phân xưởng (ZONE)</option>
-                    <option value="LINE">Dây chuyền (LINE)</option>
-                    <option value="PLANT">Nhà máy (PLANT)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#112D4E] mb-1">Thuộc cấp trên</label>
-                  <select
-                    value={formData.parent_id}
-                    onChange={e => setFormData({ ...formData, parent_id: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                  >
-                    {data.locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#112D4E] mb-1">Mô tả vị trí</label>
-                <textarea
-                  rows="2"
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Vị trí tòa nhà, diện tích, ghi chú..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#112D4E]"
-                ></textarea>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg text-xs font-semibold shadow-sm"
-                >
-                  Lưu địa điểm
-                </button>
-              </div>
-            </form>
+      {selectedLocation && (
+        <LocationDrawer
+          key={selectedLocation.id}
+          location={selectedLocation}
+          parent={data.locations.find(item => item.id === selectedLocation.parent_id)}
+          assets={assetsById.get(selectedLocation.id) || []}
+          onClose={() => setParams({})}
+          onSelectAsset={onSelectAsset}
+        />
+      )}
+      {canManage && form && (
+        <Dialog title={form.location ? 'Chỉnh sửa vị trí' : 'Thêm vị trí mới'} onClose={() => setForm(null)} width={484}>
+          <LocationForm location={form.location} locations={data.locations} onCancel={() => setForm(null)} onSave={save} />
+        </Dialog>
+      )}
+      {canManage && pendingDelete && (
+        <Dialog title="Xóa vị trí" onClose={() => setPendingDelete(null)} width={440}>
+          <p>Bạn có muốn xóa vị trí <strong>{pendingDelete.name}</strong>?</p>
+          <div className="risova-form-actions">
+            <button type="button" onClick={() => setPendingDelete(null)}>Hủy</button>
+            <button type="button" className="equipment-button-danger" onClick={remove}>Xóa</button>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

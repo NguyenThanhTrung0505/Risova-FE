@@ -1,32 +1,34 @@
-import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import WorkOrderPie from '../components/WorkOrderPie';
 import { useAuth, useData } from '../context/DataContext';
+import { canAccessPage, canCreateOnPage } from '../constants/permissions';
 import {
   Plus,
-  AlertTriangle,
-  Clock,
-  ArrowRight,
-  TrendingUp,
   Activity,
   CheckCircle,
   Package,
-  Wrench,
-  ShieldAlert,
-  ChevronRight,
-  Calendar
+  Wrench
 } from 'lucide-react';
 
 export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
+  const routeNavigate = useNavigate();
   const { currentUser } = useAuth();
   const { data, ENUMS } = useData();
-  const [hoveredBar, setHoveredBar] = useState(null);
+  const role = currentUser?.role;
+  const canViewAssets = canAccessPage(role, 'assets');
+  const canViewSchedules = canAccessPage(role, 'schedules');
+  const canViewIot = canAccessPage(role, 'iot');
+  const canViewInventory = canAccessPage(role, 'inventory');
+  const canCreateWo = canCreateOnPage(role, 'work-orders');
+  const navigateIfAllowed = (tab) => { if (canAccessPage(role, tab)) onNavigate(tab); };
 
   // 1. DYNAMIC KPI CALCULATIONS
   const activeAssetsCount = data.assets.filter(a => a.status === 'ACTIVE').length;
   const totalAssetsCount = data.assets.length;
-  const readinessRate = totalAssetsCount > 0 ? ((activeAssetsCount / totalAssetsCount) * 100).toFixed(1) : '94.7';
+  const readinessRate = totalAssetsCount > 0 ? ((activeAssetsCount / totalAssetsCount) * 100).toFixed(1) : '0.0';
 
   // Work orders processing & critical
-  const processingWos = data.work_orders.filter(w => w.status !== 'CLOSED' && w.status !== 'CANCELLED');
+  const processingWos = data.work_orders.filter(w => !['COMPLETED', 'CLOSED', 'CANCELLED'].includes(w.status));
   const criticalWos = processingWos.filter(w => w.priority === 'CRITICAL' || w.wo_type === 'EMERGENCY');
 
   // Active alerts
@@ -38,56 +40,23 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
 
   // 2. CRITICAL HEALTH DEVICES DATA FROM DYNAMIC ASSETS
   const healthData = [
-    { code: 'AC-04', name: 'Máy nén khí trục vít AC-04', score: data.assets.find(a => a.asset_code === 'AC-04')?.health_score ?? 32 },
-    { code: 'CV-01', name: 'Băng tải cấp liệu CV-01', score: data.assets.find(a => a.asset_code === 'CV-01')?.health_score ?? 65 },
-    { code: 'RB-03', name: 'Robot hàn tự động RB-03', score: data.assets.find(a => a.asset_code === 'RB-03')?.health_score ?? 95 },
-    { code: 'MDB-01', name: 'Tủ điện phân phối chính MDB-01', score: data.assets.find(a => a.asset_code === 'MDB-01')?.health_score ?? 90 },
-    { code: 'CT-02', name: 'Tháp giải nhiệt làm mát CT-02', score: data.assets.find(a => a.asset_code === 'CT-02')?.health_score ?? 88 },
-    { code: 'P-08', name: 'Bơm cấp nước tuần hoàn P-08', score: data.assets.find(a => a.asset_code === 'P-08')?.health_score ?? 80 }
-  ];
-
-  // 3. WORK ORDER STATUS DISTRIBUTION FOR DONUT CHART (DYNAMIC)
-  const assignedCount = data.work_orders.filter(w => w.status === 'ASSIGNED').length;
-  const openCount = data.work_orders.filter(w => w.status === 'OPEN').length;
-  const completedCount = data.work_orders.filter(w => w.status === 'COMPLETED' || w.status === 'CLOSED').length;
-  const inProgressCount = data.work_orders.filter(w => w.status === 'IN_PROGRESS' || w.status === 'ON_HOLD').length;
-  const totalStats = assignedCount + openCount + completedCount + inProgressCount;
-  const safeTotal = totalStats > 0 ? totalStats : 1;
-
-  const donutData = [
-    { key: 'ASSIGNED', label: 'Đã giao', count: assignedCount, color: '#3F72AF', percent: assignedCount / safeTotal },
-    { key: 'OPEN', label: 'Mới mở', count: openCount, color: '#3B82F6', percent: openCount / safeTotal },
-    { key: 'IN_PROGRESS', label: 'Đang thực hiện', count: inProgressCount, color: '#F59E0B', percent: inProgressCount / safeTotal },
-    { key: 'COMPLETED', label: 'Đã hoàn thành', count: completedCount, color: '#10B981', percent: completedCount / safeTotal }
-  ];
-
-  let cumulativeAngle = 0;
-  const donutSlices = donutData.map(slice => {
-    const startAngle = cumulativeAngle;
-    const angle = slice.percent * 360;
-    cumulativeAngle += angle;
-    return { ...slice, startAngle, angle };
+    { code: 'AC-04', fallbackName: 'Máy nén khí trục vít AC-04', fallbackScore: 32 },
+    { code: 'CV-01', fallbackName: 'Băng tải cấp liệu CV-01', fallbackScore: 65 },
+    { code: 'RB-03', fallbackName: 'Robot hàn tự động RB-03', fallbackScore: 95 },
+    { code: 'MDB-01', fallbackName: 'Tủ điện phân phối chính MDB-01', fallbackScore: 90 },
+    { code: 'CT-02', fallbackName: 'Tháp giải nhiệt làm mát CT-02', fallbackScore: 88 },
+    { code: 'P-08', fallbackName: 'Bơm cấp nước tuần hoàn P-08', fallbackScore: 80 }
+  ].map(({ code, fallbackName, fallbackScore }) => {
+    const found = data.assets.find(a => a.asset_code === code);
+    return {
+      id: found?.id,
+      code,
+      name: found?.name || fallbackName,
+      score: found?.health_score ?? fallbackScore
+    };
   });
 
-  const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
-    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
-    return {
-      x: centerX + radius * Math.cos(angleInRadians),
-      y: centerY + radius * Math.sin(angleInRadians)
-    };
-  };
-
-  const describeArc = (x, y, radius, startAngle, endAngle) => {
-    // If angle is practically full circle
-    const diff = endAngle - startAngle;
-    if (diff >= 359.9) {
-      return `M ${x - radius} ${y} A ${radius} ${radius} 0 1 0 ${x + radius} ${y} A ${radius} ${radius} 0 1 0 ${x - radius} ${y}`;
-    }
-    const start = polarToCartesian(x, y, radius, endAngle);
-    const end = polarToCartesian(x, y, radius, startAngle);
-    const largeArcFlag = diff <= 180 ? '0' : '1';
-    return ['M', start.x, start.y, 'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y].join(' ');
-  };
+  const totalStats = data.work_orders.filter(order => order.status !== 'CANCELLED').length;
 
   // 4. DYNAMIC LISTS
   const upcomingSchedules = (data.maintenance_schedules || []).slice(0, 3);
@@ -96,7 +65,7 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
   const myWorkOrders = (data.work_orders || []).slice(0, 4);
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+    <div className="risova-page risova-dashboard space-y-5">
       {/* 1. WELCOME HEADER & QUICK ACTION BUTTON */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -104,21 +73,23 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
             Xin chào, {currentUser?.full_name || 'Minh Anh'}
           </h1>
           <p className="text-body text-[#64748B] mt-0.5">
-            Tổng quan vận hành Nhà máy Bắc Ninh - Cập nhật lúc {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}, {new Date().toLocaleDateString('vi-VN')}
+            Tổng quan vận hành Nhà máy Bắc Ninh - Cập nhật lúc {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })}, {new Date().toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
           </p>
         </div>
 
-        <button
-          onClick={onOpenCreateWo}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg font-semibold text-sm shadow-md shadow-blue-500/20 transition duration-150 ease-in-out cursor-pointer shrink-0 self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Tạo phiếu giao việc</span>
-        </button>
+        {canCreateWo && (
+          <button
+            onClick={onOpenCreateWo}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3F72AF] hover:bg-[#325d91] text-white rounded-lg font-semibold text-sm shadow-md shadow-blue-500/20 transition duration-150 ease-in-out cursor-pointer shrink-0 self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Tạo phiếu giao việc</span>
+          </button>
+        )}
       </div>
 
       {/* 2. FOUR KPI CARDS (DỮ LIỆU ĐỘNG 100%) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="risova-dashboard-kpis grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* KPI 1: Thiết bị đang hoạt động */}
         <div
           onClick={() => onNavigate('assets')}
@@ -165,16 +136,17 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
 
         {/* KPI 3: Cảnh báo nguy hiểm */}
         <div
-          onClick={() => onNavigate('iot')}
-          className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer"
+          onClick={() => navigateIfAllowed('iot')}
+          className={`bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm transition ${canViewIot ? 'hover:shadow-md cursor-pointer' : ''}`}
         >
           <div className="flex items-start justify-between">
             <span className="text-body font-semibold text-[#112D4E]">
               Cảnh báo nguy hiểm
             </span>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
               activeAlerts.length > 0 ? 'bg-red-100 text-[#EF4444]' : 'bg-emerald-100 text-emerald-700'
             }`}>
+              {activeAlerts.length > 0 && <span className="risova-live-danger-dot" aria-hidden="true" />}
               {activeAlerts.length} cảnh báo
             </span>
           </div>
@@ -187,8 +159,8 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
 
         {/* KPI 4: Vật tư tồn kho thấp */}
         <div
-          onClick={() => onNavigate('inventory')}
-          className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer"
+          onClick={() => navigateIfAllowed('inventory')}
+          className={`bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm transition ${canViewInventory ? 'hover:shadow-md cursor-pointer' : ''}`}
         >
           <div className="flex items-start justify-between">
             <span className="text-body font-semibold text-[#112D4E]">
@@ -229,55 +201,7 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
-            {/* Donut Chart SVG */}
-            <div className="relative w-48 h-48 shrink-0 flex items-center justify-center">
-              <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                {donutSlices.map((slice, i) => {
-                  if (slice.count === 0) return null;
-                  const strokeWidth = 24;
-                  const radius = 38;
-                  const path = describeArc(50, 50, radius, slice.startAngle, slice.startAngle + slice.angle - (donutSlices.filter(s => s.count > 0).length > 1 ? 1 : 0));
-                  return (
-                    <path
-                      key={i}
-                      d={path}
-                      fill="none"
-                      stroke={slice.color}
-                      strokeWidth={strokeWidth}
-                      className="transition-all duration-300 hover:opacity-85 cursor-pointer"
-                    />
-                  );
-                })}
-              </svg>
-
-              {/* Inside center label */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-bold text-[#112D4E]">{totalStats}</span>
-                <span className="text-[11px] text-[#64748B]">Lệnh việc</span>
-              </div>
-            </div>
-
-            {/* Donut Legend */}
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 w-full sm:w-auto">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#3F72AF]"></span>
-                <span className="text-xs text-[#112D4E]">Đã giao: <strong>{assignedCount}</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#3B82F6]"></span>
-                <span className="text-xs text-[#112D4E]">Mới mở: <strong>{openCount}</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#F59E0B]"></span>
-                <span className="text-xs text-[#112D4E]">Đang thực hiện: <strong>{inProgressCount}</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#10B981]"></span>
-                <span className="text-xs text-[#112D4E]">Đã hoàn thành: <strong>{completedCount}</strong></span>
-              </div>
-            </div>
-          </div>
+          <WorkOrderPie orders={data.work_orders} onSelectSlice={() => onNavigate('work-orders')} />
         </div>
 
         {/* Bảo trì sắp tới (Render động từ data.maintenance_schedules) */}
@@ -291,12 +215,14 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
                 Trong 7 ngày tới ({upcomingSchedules.length} kế hoạch)
               </p>
             </div>
-            <button
-              onClick={() => onNavigate('schedules')}
-              className="text-xs font-semibold text-[#3F72AF] hover:underline cursor-pointer"
-            >
-              Xem tất cả
-            </button>
+            {canViewSchedules && (
+              <button
+                onClick={() => onNavigate('schedules')}
+                className="text-xs font-semibold text-[#3F72AF] hover:underline cursor-pointer"
+              >
+                Xem tất cả
+              </button>
+            )}
           </div>
 
           <div className="space-y-3.5 flex-1 justify-center flex flex-col">
@@ -308,8 +234,8 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
                 return (
                   <div
                     key={schedule.id}
-                    onClick={() => onNavigate('schedules')}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-300 transition cursor-pointer"
+                    onClick={() => navigateIfAllowed('schedules')}
+                    className={`risova-schedule-item flex items-center justify-between p-3 transition ${canViewSchedules ? 'cursor-pointer' : ''}`}
                   >
                     <div className="flex items-center gap-3.5">
                       <div className={`w-12 h-12 rounded-lg border flex flex-col items-center justify-center font-bold shrink-0 ${
@@ -357,9 +283,9 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
       </div>
 
       {/* 4. ROW 3: SỨC KHỎE THIẾT BỊ TRỌNG YẾU (BAR CHART) & CẢNH BÁO IOT GẦN ĐÂY (ĐỘNG) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="risova-dashboard-row grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Sức khỏe thiết bị trọng yếu */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200/80 shadow-sm flex flex-col">
+        <div className="risova-health-card bg-white rounded-xl p-6 border border-slate-200/80 flex flex-col">
           <div className="mb-4">
             <h2 className="text-card-title font-semibold text-[#112D4E]">
               Sức khỏe thiết bị trọng yếu
@@ -396,20 +322,22 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
                 return (
                   <div
                     key={idx}
-                    className="flex-1 flex flex-col items-center h-full justify-end group relative z-10 cursor-pointer"
-                    onMouseEnter={() => setHoveredBar(item)}
-                    onMouseLeave={() => setHoveredBar(null)}
-                    onClick={() => onNavigate('assets')}
+                    className={`flex-1 flex flex-col items-center h-full justify-end group relative z-10 ${canViewAssets ? 'cursor-pointer' : ''}`}
+                    onClick={() => {
+                      if (!canViewAssets) return;
+                      if (item.id) routeNavigate('/equipment?asset=' + item.id);
+                      else onNavigate('assets');
+                    }}
                   >
                     {/* Tooltip */}
                     <div className="opacity-0 group-hover:opacity-100 absolute -top-8 bg-[#112D4E] text-white text-[11px] font-semibold py-1 px-2 rounded pointer-events-none transition duration-150 whitespace-nowrap shadow-md z-30">
-                      {item.score} điểm
+                      {item.name} · {item.score} điểm
                     </div>
 
                     {/* Bar */}
                     <div
-                      style={{ height: heightPercent }}
-                      className={`w-full max-w-[42px] rounded-t-md transition-all duration-300 ${
+                      style={{ height: heightPercent, '--bar-delay': `${idx * 55}ms` }}
+                      className={`risova-health-bar w-full max-w-[68px] rounded-t-md transition-all duration-300 ${
                         isCritical
                           ? 'bg-[#3F72AF]/70 hover:bg-[#3F72AF]'
                           : 'bg-[#3F72AF] hover:bg-[#325d91]'
@@ -442,12 +370,14 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
                 Các thông số vượt ngưỡng theo thời gian thực
               </p>
             </div>
-            <button
-              onClick={() => onNavigate('iot')}
-              className="text-xs font-semibold text-[#3F72AF] hover:underline cursor-pointer"
-            >
-              Mở giám sát
-            </button>
+            {canViewIot && (
+              <button
+                onClick={() => onNavigate('iot')}
+                className="text-xs font-semibold text-[#3F72AF] hover:underline cursor-pointer"
+              >
+                Mở giám sát
+              </button>
+            )}
           </div>
 
           <div className="space-y-3.5 flex-1 flex flex-col justify-center">
@@ -457,8 +387,8 @@ export default function Dashboard({ onNavigate, onOpenCreateWo, onSelectWo }) {
                 return (
                   <div
                     key={alert.id}
-                    onClick={() => onNavigate('iot')}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
+                    onClick={() => navigateIfAllowed('iot')}
+                    className={`risova-alert-item flex items-center justify-between p-3 rounded-xl border transition ${canViewIot ? 'cursor-pointer' : ''} ${
                       isDanger
                         ? 'bg-red-50/60 border-red-100 hover:border-red-200'
                         : 'bg-amber-50/60 border-amber-100 hover:border-amber-200'

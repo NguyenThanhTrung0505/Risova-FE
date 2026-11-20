@@ -1,4 +1,3 @@
-import React from 'react';
 import { useData } from '../context/DataContext';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, X } from 'lucide-react';
 

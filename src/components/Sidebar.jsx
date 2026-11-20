@@ -124,27 +124,7 @@ const groups = [
 function BrandMark() {
     return (
         <span className="sidebar-logo" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                    d="M9 18h6M10 21h4"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    strokeLinecap="round"
-                />
-                <path
-                    d="M8.4 14.1a5.6 5.6 0 1 1 7.2 0c-.8.8-1.1 1.6-1.3 2.4H9.7c-.2-.8-.5-1.6-1.3-2.4Z"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    strokeLinejoin="round"
-                />
-                <path
-                    d="M7.5 11.2h2.1l1.15-2.3 1.7 4.1 1.05-1.8H16.5"
-                    stroke="currentColor"
-                    strokeWidth="1.7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
+            <img src="/favicon.svg" alt="" width="42" height="42" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </span>
     );
 }

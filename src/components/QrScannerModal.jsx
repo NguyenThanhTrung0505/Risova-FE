@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useData } from '../context/DataContext';
 import {
@@ -11,8 +11,6 @@ import {
   RotateCcw,
   Wrench,
   Eye,
-  Layers,
-  Building2,
   FileSearch
 } from 'lucide-react';
 
@@ -41,7 +39,7 @@ export default function QrScannerModal({ isOpen, onClose, onViewAsset, onCreateW
   };
 
   // Find asset from database
-  const processDecodedText = (decoded) => {
+  const processDecodedText = useCallback((decoded) => {
     setScannedText(decoded);
     const code = extractAssetCode(decoded);
 
@@ -51,10 +49,10 @@ export default function QrScannerModal({ isOpen, onClose, onViewAsset, onCreateW
     );
 
     setMatchedAsset(asset || null);
-  };
+  }, [data.assets]);
 
   // Stop camera stream safely
-  const stopScanner = async () => {
+  const stopScanner = useCallback(async () => {
     if (html5QrCodeRef.current) {
       try {
         if (html5QrCodeRef.current.isScanning) {
@@ -66,10 +64,10 @@ export default function QrScannerModal({ isOpen, onClose, onViewAsset, onCreateW
       }
       setIsScanning(false);
     }
-  };
+  }, []);
 
   // Start live webcam scanner
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     setScanError(null);
     try {
       // Ensure any existing instance is cleaned up
@@ -105,7 +103,7 @@ export default function QrScannerModal({ isOpen, onClose, onViewAsset, onCreateW
         'Không thể mở Camera (Có thể do thiết bị chưa cấp quyền hoặc không có Webcam). Bạn hãy chuyển sang chế độ "Tải ảnh QR lên" để quét nhé!'
       );
     }
-  };
+  }, [stopScanner, processDecodedText]);
 
   // Effect: manage camera when modal opens/closes or mode changes
   useEffect(() => {
@@ -121,7 +119,7 @@ export default function QrScannerModal({ isOpen, onClose, onViewAsset, onCreateW
     } else {
       stopScanner();
     }
-  }, [isOpen, mode, scannedText]);
+  }, [isOpen, mode, scannedText, startCamera, stopScanner]);
 
   // Handle file upload scan
   const handleFileUpload = async (e) => {

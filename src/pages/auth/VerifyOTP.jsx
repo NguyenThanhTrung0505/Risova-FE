@@ -1,91 +1,31 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { FiArrowLeft } from "react-icons/fi";
+import { useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import RecoveryCard from '../../components/RecoveryCard';
 
-const VerifyOTP = () => {
-    const navigate = useNavigate();
-    const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-
-    const handleChange = (element, index) => {
-        if (isNaN(element.value)) return false;
-        const newOtp = [...otp];
-        newOtp[index] = element.value;
-        setOtp(newOtp);
-
-        if (element.nextSibling && element.value !== "") {
-            element.nextSibling.focus();
-        }
-    };
-
-    const handleVerify = () => {
-        const otpCode = otp.join("");
-        console.log("Verifying OTP:", otpCode);
-        if (otpCode.length === 6) {
-            navigate("/reset-password");
-        }
-    };
-
-    return (
-        <div className="auth-page-container">
-            <div className="auth-content-wrapper">
-                <div className="auth-card">
-                    <Link to="/auth/forgot-password" className="back-link">
-                        <FiArrowLeft className="me-2" /> Quay lại
-                    </Link>
-
-                    <h3 className="auth-title text-start mb-2">Nhập mã</h3>
-                    <p className="auth-subtitle text-start mb-4">
-                        Hãy nhập mã chúng tôi đã gửi vào email của bạn
-                    </p>
-
-                    <div className="d-flex justify-content-between mb-4 gap-2">
-                        {otp.map((data, index) => {
-                            return (
-                                <input
-                                    className="form-control text-center p-2"
-                                    type="text"
-                                    name="otp"
-                                    maxLength="1"
-                                    key={index}
-                                    value={data}
-                                    onChange={(e) =>
-                                        handleChange(e.target, index)
-                                    }
-                                    onFocus={(e) => e.target.select()}
-                                    style={{
-                                        width: "45px",
-                                        height: "50px",
-                                        fontSize: "1.2rem",
-                                        borderRadius: "8px",
-                                    }}
-                                />
-                            );
-                        })}
-                    </div>
-
-                    <button
-                        onClick={handleVerify}
-                        className="btn btn-primary-custom mb-3"
-                    >
-                        Xác thực
-                    </button>
-
-                    <button className="btn btn-light w-100 border text-muted fw-semibold mb-3">
-                        Gửi lại mã
-                    </button>
-
-                    <div className="text-center">
-                        <Link
-                            to="/auth/forgot-password"
-                            className="text-decoration-none small text-muted"
-                        >
-                            Thử với email khác
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default VerifyOTP;
+export default function VerifyOTP() {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const [digits, setDigits] = useState(Array(6).fill(''));
+  const [message, setMessage] = useState('');
+  const inputs = useRef([]);
+  function fill(value, index) {
+    const numbers = value.replace(/\D/g, '').slice(0, 6 - index);
+    setDigits(previous => {
+      const next = [...previous];
+      if (!numbers) next[index] = '';
+      else [...numbers].forEach((number, offset) => { next[index + offset] = number; });
+      return next;
+    });
+    if (numbers) inputs.current[Math.min(5, index + numbers.length)]?.focus();
+    setMessage('');
+  }
+  return <RecoveryCard title="Nhập mã" backTo="/auth/forgot-password" subtitle={'Hãy nhập mã chúng tôi đã gửi vào email ' + (state?.email || 'của bạn')}>
+    <form onSubmit={event => { event.preventDefault(); if (digits.join('').length !== 6) { setMessage('Vui lòng nhập đủ 6 chữ số.'); return; } navigate('/auth/reset-password', { state }); }}>
+      <div className="risova-otp-inputs" role="group" aria-label="Mã xác thực gồm sáu chữ số">{digits.map((digit, index) => <input key={index} ref={element => { inputs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? 'one-time-code' : 'off'} aria-label={'Chữ số thứ ' + (index + 1)} value={digit} onChange={event => fill(event.target.value, index)} onPaste={event => { event.preventDefault(); fill(event.clipboardData.getData('text'), index); }} onFocus={event => event.target.select()} onKeyDown={event => { if (event.key === 'Backspace' && !digit && index > 0) inputs.current[index - 1]?.focus(); if (event.key === 'ArrowLeft' && index > 0) inputs.current[index - 1]?.focus(); if (event.key === 'ArrowRight' && index < 5) inputs.current[index + 1]?.focus(); }} />)}</div>
+      {message && <p className="risova-auth-message" role="status">{message}</p>}
+      <button className="risova-auth-submit" type="submit">Xác thực</button>
+      <button className="risova-recovery-resend" type="button" onClick={() => { setDigits(Array(6).fill('')); setMessage('Vui lòng kiểm tra mã khôi phục trong email của bạn.'); inputs.current[0]?.focus(); }}>Gửi lại mã</button>
+      <Link className="risova-recovery-other" to="/auth/forgot-password">Thử với email khác</Link>
+    </form>
+  </RecoveryCard>;
+}

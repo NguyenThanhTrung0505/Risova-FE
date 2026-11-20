@@ -1,0 +1,436 @@
+.risova-pulse-wrap {
+  position: relative;
+}
+
+.risova-pulse-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid #dbe2ef;
+  background: #f8fafd;
+  color: #112d4e;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 180ms ease;
+}
+
+.risova-pulse-pill:hover {
+  background: #eef4fc;
+}
+
+.risova-pulse-pill.is-healthy {
+  --pulse-color: #10b981;
+  border-color: rgba(16, 185, 129, 0.34);
+  background: rgba(16, 185, 129, 0.08);
+  color: #065f46;
+}
+
+.risova-pulse-pill.is-caution {
+  --pulse-color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.38);
+  background: rgba(245, 158, 11, 0.09);
+  color: #92400e;
+}
+
+.risova-pulse-pill.is-critical {
+  --pulse-color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.38);
+  background: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+}
+
+.risova-pulse-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pulse-color, #10b981);
+  flex-shrink: 0;
+}
+
+.risova-pulse-pill.is-critical .risova-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pulse-color, #ef4444);
+  animation: risova-pulse-beacon 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.risova-pulse-ecg {
+  width: 28px;
+  height: 14px;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.risova-pulse-ecg-base {
+  fill: none;
+  stroke: var(--pulse-color, #10b981);
+  stroke-opacity: 0.25;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.risova-pulse-ecg-trace {
+  fill: none;
+  stroke: var(--pulse-color, #10b981);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 28 72;
+  animation: risova-pulse-ecg-run 2.4s linear infinite;
+}
+
+.risova-pulse-pill.is-critical .risova-pulse-ecg-trace {
+  animation-duration: 1.4s;
+}
+
+.risova-pulse-pill.is-caution .risova-pulse-ecg-trace {
+  animation-duration: 1.9s;
+}
+
+.risova-pulse-label {
+  line-height: 1;
+}
+
+@media (max-width: 1180px) {
+  .risova-pulse-label {
+    display: none;
+  }
+
+  .risova-pulse-pill {
+    padding: 0 9px;
+  }
+}
+
+/* Popover Card */
+.risova-pulse-popover {
+  width: 314px;
+  right: 0;
+  top: calc(100% + 12px);
+  padding: 14px 16px;
+}
+
+.risova-pulse-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 11px;
+}
+
+.risova-pulse-popover-head strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #112d4e;
+}
+
+.risova-pulse-status-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.risova-pulse-status-tag.is-healthy {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.risova-pulse-status-tag.is-caution {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.risova-pulse-status-tag.is-critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.risova-pulse-monitor-box {
+  position: relative;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background:
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    #0b1628;
+  background-size: 18px 18px;
+  border: 1px solid #1e3352;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.risova-pulse-monitor-wave {
+  flex: 1;
+  height: 36px;
+  overflow: visible;
+}
+
+.risova-pulse-monitor-wave .is-bg {
+  fill: none;
+  stroke: var(--pulse-color, #10b981);
+  stroke-opacity: 0.22;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.risova-pulse-monitor-wave .is-live {
+  fill: none;
+  stroke: var(--pulse-color, #10b981);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 34 66;
+  filter: drop-shadow(0 0 6px var(--pulse-color, #10b981));
+  animation: risova-pulse-ecg-run 1.8s linear infinite;
+}
+
+.risova-pulse-monitor-score {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.risova-pulse-monitor-score strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #f8fafc;
+}
+
+.risova-pulse-monitor-score small {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.risova-pulse-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.risova-pulse-stat {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid #edf0f5;
+  background: #f8fafd;
+  text-align: center;
+}
+
+.risova-pulse-stat strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #112d4e;
+}
+
+.risova-pulse-stat small {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.risova-pulse-focus-asset {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #dbe2ef;
+  border-radius: 9px;
+  background: #ffffff;
+  text-align: left;
+  color: #112d4e;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.risova-pulse-focus-asset:hover:not(:disabled) {
+  background: #f4f8ff;
+  border-color: #3f72af;
+}
+
+.risova-pulse-focus-asset > span:first-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.risova-pulse-focus-asset strong {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.risova-pulse-focus-asset small {
+  font-size: 10.5px;
+  color: #64748b;
+}
+
+.risova-pulse-focus-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.risova-pulse-focus-score.is-ok {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.risova-pulse-footer-link {
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: #edf3fc;
+  color: #3f72af;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.risova-pulse-footer-link:hover {
+  background: #dbe6f7;
+}
+
+/* Dark Theme Support */
+html[data-theme="dark"] .risova-pulse-pill {
+  background: #142238;
+  border-color: #263a57;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .risova-pulse-pill.is-healthy {
+  border-color: rgba(16, 185, 129, 0.36);
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .risova-pulse-pill.is-caution {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+
+html[data-theme="dark"] .risova-pulse-pill.is-critical {
+  border-color: rgba(239, 68, 68, 0.44);
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .risova-pulse-popover-head strong,
+html[data-theme="dark"] .risova-pulse-stat strong,
+html[data-theme="dark"] .risova-pulse-focus-asset {
+  color: #f1f5f9;
+}
+
+html[data-theme="dark"] .risova-pulse-stat {
+  background: #0f192b;
+  border-color: #22324c;
+}
+
+html[data-theme="dark"] .risova-pulse-stat small,
+html[data-theme="dark"] .risova-pulse-focus-asset small {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .risova-pulse-focus-asset {
+  background: #162238;
+  border-color: #263a57;
+}
+
+html[data-theme="dark"] .risova-pulse-focus-asset:hover:not(:disabled) {
+  background: #1c2d4a;
+  border-color: #4f86c6;
+}
+
+html[data-theme="dark"] .risova-pulse-footer-link {
+  background: #1a2d49;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .risova-pulse-footer-link:hover {
+  background: #223a5e;
+}
+
+html[data-theme="dark"] .risova-pulse-status-tag.is-healthy {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .risova-pulse-status-tag.is-caution {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+html[data-theme="dark"] .risova-pulse-status-tag.is-critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .risova-pulse-focus-score {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .risova-pulse-focus-score.is-ok {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+@keyframes risova-pulse-ecg-run {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes risova-pulse-beacon {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .risova-pulse-ecg-trace,
+  .risova-pulse-monitor-wave .is-live,
+  .risova-pulse-pill.is-critical .risova-pulse-dot::after {
+    animation: none;
+  }
+}

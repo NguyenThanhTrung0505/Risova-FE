@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
+import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import {
-  FileText,
   Search,
-  Filter,
-  Shield,
-  Clock,
-  Terminal,
-  User,
-  Globe
+  User
 } from 'lucide-react';
 
 export default function AuditLogsPage() {
@@ -17,22 +13,24 @@ export default function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('ALL');
 
   const filteredLogs = (data.audit_logs || []).filter(log => {
-    const matchesSearch = log.entity_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = String(log.entity_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           log.action?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesAction = actionFilter === 'ALL' || log.action === actionFilter;
     return matchesSearch && matchesAction;
   });
 
+  const pagination = usePagination(filteredLogs, [searchTerm, actionFilter].join('|'));
+
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+    <div className="risova-page space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-page-title font-bold text-[#112D4E]">
-          Nhật ký Kiểm toán Hệ thống (Audit Logs)
+          Nhật ký kiểm toán
         </h1>
         <p className="text-body text-[#64748B] mt-0.5">
-          Ghi nhận toàn bộ thao tác thêm, sửa, cập nhật trạng thái lệnh việc, xuất kho phụ tùng và địa chỉ IP
+          Theo dõi hoạt động và các thay đổi trong hệ thống.
         </p>
       </div>
 
@@ -80,7 +78,7 @@ export default function AuditLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredLogs.map(log => (
+              {pagination.items.map(log => (
                 <tr key={log.id} className="hover:bg-slate-50 transition">
                   <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
                     {new Date(log.created_at).toLocaleString('vi-VN')}
@@ -112,6 +110,7 @@ export default function AuditLogsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination {...pagination} />
       </div>
     </div>
   );
