@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth, useData } from '../context/DataContext';
 import {
-  LayoutDashboard, Layers, MapPin, ClipboardList, Package,
+  Layers, MapPin, ClipboardList, Package,
   Users, BarChart3, Search, Bell, ChevronDown, LogOut,
   CheckCircle2, AlertTriangle, X, RotateCcw, QrCode, Menu, ChevronRight,
-  CircleHelp, UserRound, Component, CalendarDays, ChartNoAxesCombined, FileSearch, Shield
+  CircleHelp, UserRound, Component, CalendarDays, ChartNoAxesCombined, FileSearch
 } from 'lucide-react';
 import RisovaLogo from './RisovaLogo';
 import SidebarThemeBulb from './SidebarThemeBulb';
 import CommandPalette from './CommandPalette';
 import FactoryPulsePill from './FactoryPulsePill';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ALL_ROLES, canAccessPage, isAdmin } from '../constants/permissions';
+import { ALL_ROLES, canAccessPage } from '../constants/permissions';
 
 const groups = [
   { label: 'Tổng quan', items: [['dashboard', 'Bảng điều khiển', Component]] },
@@ -22,8 +22,7 @@ const groups = [
   { label: 'Nguồn lực', items: [
     ['inventory', 'Kho vật tư', Package], ['iot', 'Giám sát IoT', ChartNoAxesCombined], ['users', 'Nhân sự', Users]
   ] },
-  { label: 'Phân tích', items: [['reports', 'Báo cáo', BarChart3], ['audit', 'Nhật ký kiểm toán', FileSearch]] },
-  { label: 'Quản trị', items: [['admin', 'Quản trị hệ thống', Shield]] }
+  { label: 'Phân tích', items: [['reports', 'Báo cáo', BarChart3], ['audit', 'Nhật ký', FileSearch]] }
 ];
 const titles = Object.fromEntries(groups.flatMap(group => group.items.map(([id, label]) => [id, label])));
 
@@ -39,8 +38,7 @@ export default function SidebarLayout({ activeTab, setActiveTab, onOpenCreateWo,
     .filter(group => group.items.length > 0);
   const detailLabels = { assets: 'Thiết bị', locations: 'Vị trí', schedules: 'Bảo trì', inventory: 'Kho vật tư', 'work-orders': 'Lệnh việc' };
   const hasDetail = ['asset', 'location', 'schedule', 'part', 'order'].some(key => params.has(key));
-  const pageLabel = activeTab === 'admin' ? 'Quản trị hệ thống'
-    : activeTab === 'profile' ? 'Hồ sơ'
+  const pageLabel = activeTab === 'profile' ? 'Hồ sơ'
     : hasDetail ? (detailLabels[activeTab] || titles[activeTab]) + ' / Chi tiết'
     : activeTab === 'inventory' && params.get('view') === 'transactions' ? 'Kho vật tư / Giao dịch kho'
     : activeTab === 'users' && params.get('tab') === 'specialties' ? 'Chuyên môn'
@@ -176,7 +174,6 @@ export default function SidebarLayout({ activeTab, setActiveTab, onOpenCreateWo,
           {openMenu === 'account' && <div className="risova-popover risova-account-menu">
             <div className="risova-popover-heading"><strong>{currentUser?.full_name}</strong><small>{currentUser?.email}</small></div>
             <button className="risova-menu-item" onClick={() => navigate('profile')}><UserRound size={16} />Hồ sơ của bạn</button>
-            {isAdmin(role) && <button className="risova-menu-item" onClick={() => navigate('admin')}><LayoutDashboard size={16} />Quản trị hệ thống</button>}
             <button className="risova-menu-item" onClick={() => { setHelpOpen(true); setOpenMenu(null); }}><CircleHelp size={16} />Trợ giúp sử dụng</button>
             <div className="risova-menu-divider" />
             <p className="risova-menu-caption">Chuyển vai trò trải nghiệm</p>
@@ -252,7 +249,6 @@ export default function SidebarLayout({ activeTab, setActiveTab, onOpenCreateWo,
               <button className="risova-topbar-profile" onClick={() => toggleMenu('profile')} aria-label="Menu tài khoản" aria-expanded={openMenu === 'profile'}>{avatar}{userInfo}</button>
               {openMenu === 'profile' && <div className="risova-popover" style={{ right: 0, top: 'calc(100% + 14px)', width: 240, padding: 5 }}>
                 <button className="risova-menu-item" onClick={() => navigate('profile')}><UserRound size={16} />Hồ sơ của bạn</button>
-                {isAdmin(role) && <button className="risova-menu-item" onClick={() => navigate('admin')}><Shield size={16} />Quản trị hệ thống</button>}
                 <button className="risova-menu-item" onClick={() => routeNavigate('/auth/reset-password', { state: { fromProfile: true } })}><RotateCcw size={16} />Đổi mật khẩu</button>
                 <div className="risova-menu-divider" />
                 <p className="risova-menu-caption">Chuyển vai trò trải nghiệm</p>

@@ -17,7 +17,6 @@ export const ROLE_PERMISSIONS = {
     users: ACCESS.FULL,
     audit: ACCESS.FULL,
     reports: ACCESS.FULL,
-    admin: ACCESS.FULL,
     profile: ACCESS.FULL,
   },
   MANAGER: {
@@ -29,9 +28,8 @@ export const ROLE_PERMISSIONS = {
     inventory: ACCESS.FULL,
     iot: ACCESS.FULL,
     users: ACCESS.FULL,
-    audit: ACCESS.FULL,
+    audit: ACCESS.NONE,
     reports: ACCESS.FULL,
-    admin: ACCESS.NONE,
     profile: ACCESS.FULL,
   },
   TECHNICIAN: {
@@ -45,7 +43,6 @@ export const ROLE_PERMISSIONS = {
     users: ACCESS.NONE,
     audit: ACCESS.NONE,
     reports: ACCESS.NONE,
-    admin: ACCESS.NONE,
     profile: ACCESS.FULL,
   },
   INVENTORY_STAFF: {
@@ -59,7 +56,6 @@ export const ROLE_PERMISSIONS = {
     users: ACCESS.NONE,
     audit: ACCESS.NONE,
     reports: ACCESS.NONE,
-    admin: ACCESS.NONE,
     profile: ACCESS.FULL,
   },
   STAFF: {
@@ -73,7 +69,6 @@ export const ROLE_PERMISSIONS = {
     users: ACCESS.NONE,
     audit: ACCESS.NONE,
     reports: ACCESS.NONE,
-    admin: ACCESS.NONE,
     profile: ACCESS.FULL,
   },
 };
