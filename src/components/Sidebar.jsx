@@ -113,7 +113,7 @@ const groups = [
                 icon: <LuChartColumn size={18} strokeWidth={1.75} />,
             },
             {
-                label: "Nhật ký kiểm toán",
+                label: "Nhật ký",
                 to: "/audit-logs",
                 icon: <LuScrollText size={18} strokeWidth={1.75} />,
             },

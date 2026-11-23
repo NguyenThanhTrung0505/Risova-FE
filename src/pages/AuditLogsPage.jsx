@@ -27,7 +27,7 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div>
         <h1 className="text-page-title font-bold text-[#112D4E]">
-          Nhật ký kiểm toán
+          Nhật ký
         </h1>
         <p className="text-body text-[#64748B] mt-0.5">
           Theo dõi hoạt động và các thay đổi trong hệ thống.

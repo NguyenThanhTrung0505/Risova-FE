@@ -23,7 +23,6 @@ import UsersPage from './pages/UsersPage';
 import ReportsPage from './pages/ReportsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import ProfilePage from './pages/ProfilePage';
-import AdminPage from './pages/AdminPage';
 
 // UI Branch Layouts & Pages
 import MainLayout from './layouts/MainLayout';
@@ -52,8 +51,6 @@ const pathToTab = {
   '/audit-logs': 'audit',
   '/audit': 'audit',
   '/profile': 'profile',
-  '/admin': 'admin',
-  '/tempt': 'admin',
 };
 
 // CMMS Tab to URL path mapping
@@ -69,7 +66,6 @@ const tabToPath = {
   reports: '/reports',
   audit: '/audit-logs',
   profile: '/profile',
-  admin: '/admin',
 };
 
 function MainApp() {
@@ -246,7 +242,6 @@ function MainApp() {
             <AuditLogsPage />
           )}
           {activeTab === 'profile' && <ProfilePage />}
-          {activeTab === 'admin' && <AdminPage />}
         </>
       )}
     </SidebarLayout>
